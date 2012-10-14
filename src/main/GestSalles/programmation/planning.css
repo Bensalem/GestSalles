@@ -1,0 +1,115 @@
+html {
+	background: #ebdcc6; /* 67798b */
+}
+
+/***** Barre de navigation *****/
+
+.navbar {
+	background: #67798b;
+	height: 61px;
+	margin-top: 10px;
+	-moz-border-radius-topleft: 5px;
+	-webkit-border-top-left-radius: 5px;
+	border-top-left-radius: 5px;
+	-moz-border-radius-topright: 5px;
+	-webkit-border-top-right-radius: 5px;
+	border-top-right-radius: 5px;
+}
+
+#navbar-selecter {
+	position:relative;
+	padding-left: 12px;
+}
+
+#navbar-text {
+	position:relative;
+	left: 23%;
+	line-height: 61px;
+	color: white;
+}
+
+#navbar-buttons {
+	position: relative;
+	right: 20px;
+	top: 13px;
+	float: right;
+}
+
+#navbar-selecter, #navbar-text, #navbar-buttons {
+	display: inline-block;
+	*display: inline;
+	vertical-align: middle;
+}
+
+.tooltip { display: none; }
+
+/***** Grille des programmes d'un cinéma *****/
+
+#planning-grid {
+	border-left: 1px dotted #67798b;
+	border-right: 1px dotted #67798b;
+	border-bottom: 1px dotted #67798b;
+}
+
+table {
+	width: 100%;
+	margin: auto;
+	border-collapse: collapse;
+	border: 3px double #67798b;
+}
+
+caption
+{
+	font-weight: bold;
+	margin-top: 12px;
+	margin-bottom: 12px;
+}
+
+#first-cell {
+	background-color: #ebdcc6;
+}
+
+thead tr {
+	background-color: #f5ece0;
+}
+
+thead th {
+	border: 1px solid black;
+}
+
+td, th {
+	border-right: 1px solid black;
+}
+
+td {
+	width: 12%;
+	text-align: center;
+}
+
+tbody th, .time-atom-solid, #first-cell {
+	border-bottom: 1px solid #b0a89b;
+}
+
+.time-atom-dotted {
+	border-bottom: 1px dotted #b0a89b;
+}
+
+.time-atom-dashed {
+	border-bottom: 1px dashed #b0a89b;
+}
+
+.time-atom, .time-atom-solid,
+.time-atom-dashed, .time-atom-dotted {
+	height: 15px;
+}
+
+.movie-session {
+	background-color: #ebeaeb;
+	border: 1px solid #bbb;
+	text-align: center;
+}
+
+#movie-session-template {
+	visibility: hidden;
+}
+
