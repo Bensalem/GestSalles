@@ -122,11 +122,48 @@
 	</div>
 
 	<div id="movie-sessions">
-		<div id="movie-session-template" class="movie-session"
+		<div id="movie-session-model" class="movie-session"
 			onmouseover="highlight(this)" onmouseout="unHighlight(this)"></div>
 	</div>
 
 	<script src="planning.js"></script>
+
+	<div id="movie-session-form-div" name="movieSessionFormDiv">
+		<form method="post" action="submitForm()" name="movieSessionForm" id="movie-session-form">
+
+			<p style="font-size: 13px; font-style: italic; margin-top: 2px; padding-left: 34px;">Ajouter une séance</p>
+			<p style="margin-top: 0px;"><b>Date :</b> <span style="font-size: 13px;">Mercredi 12 novembre 2012</span></p>
+
+			<p><b>Horaire :</b>
+				<input name="beginHour" id="hour" value="18" type="text" class="time-slot" readonly="readonly"> :
+				<input name="beginMin" value="00" type="text" size="2" class="time-slot" /> –
+				<input name="endHour" id="hour" value="19" type="text" class="time-slot" readonly="readonly"> :
+				<input name="endMin" value="30" type="text" size="2" class="time-slot" />
+			</p>
+
+			<label for="movie">Film :</label>
+			<select name="movie" style="width: 200px; margin-left: 5px;">
+				<option value="idmovie1">Titre film</option>
+				<option value="idmovie2">Film 2</option>
+				<option value="idmovie3">Film 3</option>
+			</select>
+			<br /><br />
+
+			<label for="room">Salle :</label>
+			<select name="room" style="width: 200px;">
+				<option value="Salle 1">Salle 1</option>
+				<option value="Salle 2">Salle 2</option>
+				<option value="Salle 3">Salle 3</option>
+			</select>
+			<br /><br />
+
+			<div style="text-align: center;">
+				<input type="button" name="saveButton" value="Enregistrer" onclick="sessionFormSubmit()" />
+				<input type="button" value="Effacer" onclick="reset()"/>
+				<input type="button" value="Annuler" onclick="sessionFormAbort()"/>
+			</div>
+		</form>
+	</div>
 
 	</body>
 </html>

@@ -140,9 +140,11 @@
 	 * Make a session div from a model and attach it to the grid
 	 * tdSpan: number of TDs spanned by the session
 	 */
-	function implant(model, sessionBeginTd, tdSpan, day)
+	function implant(sessionBeginTd, tdSpan, day)
 	{
+		/* If the session has been validated with the form by pressing submit */
 		var div = document.getElementById("movie-sessions");
+		var model = document.getElementById("movie-session-model");
 		newSession = cloneSessionDiv(model);
 		div.appendChild(newSession);
 		aSessionHasBeenImplanted = true;
@@ -150,8 +152,21 @@
 		newSession.setAttribute('id', 'session' + sessionNum);
 		/*newSession.setAttribute('onclick', ''); 						popup*/
 
-		/* Avoid overlapping of implanted session divs */
+
+
+		/* Avoid overlapping of session divs */
 		restrictAreaTimeAvailability(sessionBeginTd, tdSpan, day);
+	}
+
+
+	function displayMovieSessionForm(sessionBeginTdId, tdSpan, day)
+	{
+		var sessionFormDiv = document.getElementById("movie-session-form-div");
+		var sessionModel = document.getElementById("movie-session-model");
+		sessionFormDiv.style.display = "block"; // We make the form visible
+		sessionFormDiv.style.top = (sessionModel.offsetTop - 25) + "px";
+
+		document.movieSessionForm.saveButton.setAttribute('onclick', 'sessionFormSubmit('+sessionBeginTdId+','+tdSpan+','+day+')');
 	}
 
 	/*
@@ -183,7 +198,7 @@
 	{
 		if (availableQuarters <= 0) 
 			return;
-		var movieSession = document.getElementById("movie-session-template");
+		var sessionModel = document.getElementById("movie-session-model");
 		var hourHeight = 72;
 		var quarterHeight = 18;
 		var beginMin, beginMinInPixels;
@@ -217,7 +232,7 @@
 		var nbQuartersSpanned = availableQuarters;
 		var beginTimePos = (hour - firstHour) * hourHeight + beginMinInPixels;
 
-		setSessionPosAndDimensions(movieSession, day + 1, beginTimePos, nbQuartersSpanned);
+		setSessionPosAndDimensions(sessionModel, day + 1, beginTimePos, nbQuartersSpanned);
 
 		/* We put an id to the td which corresponds to the beginning
 			of the session so we can later get this td when we want
@@ -225,11 +240,11 @@
 		var sessionBeginTdId = nextSessionBeginTdId();
 		tdObj.setAttribute('id', sessionBeginTdId);
 
-		movieSession.setAttribute('ondblclick', 'implant(this,'+ sessionBeginTdId +','+ nbQuartersSpanned +','+ day +')');
-		movieSession.style.visibility = "visible";
+		sessionModel.setAttribute('ondblclick', 'displayMovieSessionForm("'+ sessionBeginTdId +'",'+ nbQuartersSpanned +','+ day +')');
+		sessionModel.style.visibility = "visible";
 
 		var endMin = (beginMin + nbQuartersSpanned * 15) % 60;
-		fillSessionDivContent(movieSession, hour, beginMin, hour + 1, endMin);
+		fillSessionDivContent(sessionModel, hour, beginMin, hour + 1, endMin);
 		/*alert(document.getElementById(dayId).innerHTML);*/
 	}
 
@@ -255,5 +270,39 @@
 				oldProposedTd.setAttribute('id', '');
 		}
 		return "td" + sessionNum;
+	}
+
+/***** Movie Session Form Functions ******/
+
+	/* la semaine, la date et l'heure; l'id du film, le cinéma, la salle
+		doivent être mis en db; et décrémenter en db le nb de copies de
+		ce film */
+
+	function sessionFormSubmit(sessionBeginTd, tdSpan, day)
+	{
+
+		implant(sessionBeginTd, tdSpan, day);
+	}
+/*
+	function sessionFormSubmit()
+	{
+		var form = document.forms["testforms"];
+		var id_sujet = form.id_sujet.value;
+		var categorie = form.categorie.value;
+		var pseudo = form.pseudo.value;
+		var com = form.com.value;
+		var url = "traitement_com.php?id_sujet="+id_sujet+"&categorie="+categorie+"&pseudo="+pseudo+"&com="+com;
+		alert(AJAX(url));
+	}
+*/
+/*
+function reset()
+{
+	for (var i=1; i < elems.length - 3; i++)
+		document.movieSessionForm.elements[i].value="";
+}*/
+
+	function sessionFormAbort() {
+		document.getElementById("movie-session-form-div").style.display = "none";
 	}
 
