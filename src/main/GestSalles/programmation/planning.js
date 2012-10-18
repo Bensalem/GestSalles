@@ -1,4 +1,6 @@
+	cinemaSelected = weekSelected = false;
 	maxTimeAtomsSpanned = 4;
+	formIsDisplayed = false;
 	aSessionHasBeenImplanted = false;
 	sessionNum = 1;
 
@@ -161,11 +163,33 @@
 
 	function displayMovieSessionForm(sessionBeginTdId, tdSpan, day)
 	{
+		formIsDisplayed = true;
 		var sessionFormDiv = document.getElementById("movie-session-form-div");
 		var sessionModel = document.getElementById("movie-session-model");
 		sessionFormDiv.style.display = "block"; // We make the form visible
 		sessionFormDiv.style.top = (sessionModel.offsetTop - 25) + "px";
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+		document.getElementById("").innerHTML
+		document.getElementById("sessionFormDate").innerHTML = ;
+*/
 		document.movieSessionForm.saveButton.setAttribute('onclick', 'sessionFormSubmit('+sessionBeginTdId+','+tdSpan+','+day+')');
 	}
 
@@ -196,8 +220,10 @@
 
 	function proposeSession(tdObj, day, firstHour, lastHour, hour, hourQuarter, availableQuarters)
 	{
-		if (availableQuarters <= 0) 
+		if (availableQuarters <= 0 // to avoid overlapping of session DIVs
+			|| formIsDisplayed == true) 
 			return;
+
 		var sessionModel = document.getElementById("movie-session-model");
 		var hourHeight = 72;
 		var quarterHeight = 18;
@@ -250,8 +276,8 @@
 
 	function fillSessionDivContent(movieSession, hour, beginMin, endHour, endMin)
 	{
-		var beginTime = hour + ":" + ((beginMin == 0) ? "00" : beginMin);
-		var endTime = endHour + ":" + ((endMin == 0) ? "00" : endMin);
+		var beginTime = hour + ":" + ((beginMin <= 0) ? "0" + beginMin : beginMin);
+		var endTime = endHour + ":" + ((endMin <= 0) ? "0" + endMin : endMin);
 		movieSession.innerHTML = "<span style=\"font-size: 10px; font-weight: bold;\">" + beginTime + " – " + endTime + "</span>";
 	}
 
@@ -280,8 +306,8 @@
 
 	function sessionFormSubmit(sessionBeginTd, tdSpan, day)
 	{
-
 		implant(sessionBeginTd, tdSpan, day);
+		hideSessionForm();
 	}
 /*
 	function sessionFormSubmit()
@@ -302,7 +328,39 @@ function reset()
 		document.movieSessionForm.elements[i].value="";
 }*/
 
-	function sessionFormAbort() {
+	function hideSessionForm()
+	{
 		document.getElementById("movie-session-form-div").style.display = "none";
+		formIsDisplayed = false;
+	}
+
+	function sessionFormAbort()
+	{
+		hideSessionForm();
+	}
+
+	function setWeekDate()
+	{
+		
+	}
+
+	function cinemaSelectHalfSubmit()
+	{
+		cinemaSelected = true;
+		if (weekSelected)
+		{
+			document.cineAndWeekSelectForm.submit();
+			cinemaSelected = false; // also set to false if the selected value is not a valid cinema
+		}
+	}
+
+	function weekSelectHalfSubmit()
+	{
+		weekSelected = true;
+		if (cinemaSelected)
+		{
+			document.cineAndWeekSelectForm.submit();
+			weekSelected = false;
+		}
 	}
 

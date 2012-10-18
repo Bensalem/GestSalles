@@ -6,8 +6,26 @@
 		<title>Planning cinéma 2</title>
 
 		<link rel="stylesheet" href="planning.css" type="text/css" media="screen">
+		<script src="planning.js"></script>
 	</head>
 	<body>
+
+<?php
+	$days_fr = array("Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi","Samedi");
+	$months_fr = array("janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre");
+
+	function getMondayTimeStamp()
+	{
+		$today = explode("-", Date('Y-m-d'));
+		$num_today = Date('w');
+		//if ($num_today == 0) $num_today = 7;
+		return mktime(0, 0, 0, $today[1], $today[2] - $num_today + 1, $today[0]);
+	}
+
+	$monday = getMondayTimeStamp();
+	$monday_date_with_slashes = date("d/m/Y", $monday);
+	$monday_date = $days_fr[date("w", $monday)]." ".date("d", $monday)." ".$months_fr[date("m", $monday)-1]." ".date("Y", $monday);
+?>
 <!--
 		<?php
 			try
@@ -35,18 +53,35 @@
 			$projections->closeCursor();
 		?>
 -->
+
+<?php
+	if (isSet($_POST['cinemaSelect']) and isSet($_POST['weekSelect']))
+	{
+		$cinema = $_POST['cinemaSelect'];
+		$week = $_POST['weekSelect'];
+	}
+?>
+
 	<div class="navbar">
 		<div id="navbar-selecter">
-			<select>
-  				<option>Sélectionner un cinéma</option>
-  				<option>---</option>
-  				<option value="cinema 1">Cinéma 1</option>
-				<option value="cinema 2">Cinéma 2</option>
-				<option value="cinema 3">Cinéma 3</option>
-			</select>
+			<form name="cineAndWeekSelectForm" action="planning.php" method="post">
+				<select name="cinemaSelect" onchange='cinemaSelectHalfSubmit()'>
+  					<option>Sélectionner un cinéma</option>
+  					<option>---</option>
+  					<option value="cinema 1">Cinéma 1</option>
+					<option value="cinema 2">Cinéma 2</option>
+					<option value="cinema 3">Cinéma 3</option>
+				</select>
+				<select name="weekSelect" onchange='weekSelectHalfSubmit()'>
+  					<option>Choisir la semaine</option>
+  					<option value="<?php echo $monday_date ?>">Semaine du <?php echo $monday_date_with_slashes ?></option>
+					<option value="<?php echo $monday_date ?>">Semaine du <?php echo $monday_date_with_slashes ?></option>
+				</select>
+			</form>
 		</div>
+
 		<div id="navbar-text">
-			Planning du cinéma de Bordeaux
+			Planning du cinéma <?php if (isSet($cinema)) echo "$cinema"; else echo "..." ?>
 		</div>
 		<div id="navbar-buttons">
 			<button type="button" title="Valider les modifications" onclick="window.history.back();">
@@ -61,9 +96,15 @@
 		</div>
 	</div>
 
+
+<?php
+	if (isSet($cinema) and isSet($week))
+	{
+?>
+
 	<div id="planning-grid">
 		<table>
-			<caption>Semaine du 19/01/2012</caption>
+			<caption>Semaine du <?php echo $week ?></caption>
 			<thead>
 				<tr>
 					<th id="first-cell"></th>
@@ -126,13 +167,13 @@
 			onmouseover="highlight(this)" onmouseout="unHighlight(this)"></div>
 	</div>
 
-	<script src="planning.js"></script>
+<!--	<script src="planning.js"></script> -->
 
 	<div id="movie-session-form-div" name="movieSessionFormDiv">
 		<form method="post" action="submitForm()" name="movieSessionForm" id="movie-session-form">
 
 			<p style="font-size: 13px; font-style: italic; margin-top: 2px; padding-left: 34px;">Ajouter une séance</p>
-			<p style="margin-top: 0px;"><b>Date :</b> <span style="font-size: 13px;">Mercredi 12 novembre 2012</span></p>
+			<p style="margin-top: 0px;"><b>Date :</b> <span id="sessionFormDate" style="font-size: 13px;">Mercredi 12 novembre 2012</span></p>
 
 			<p><b>Horaire :</b>
 				<input name="beginHour" id="hour" value="18" type="text" class="time-slot" readonly="readonly"> :
@@ -164,6 +205,10 @@
 			</div>
 		</form>
 	</div>
+
+<?php
+		} // end if $cinema and $week is set
+?>
 
 	</body>
 </html>
