@@ -300,8 +300,10 @@
 		sessionFormDiv.style.display = "block"; // We make the form visible
 		sessionFormDiv.style.top = (sessionModel.offsetTop - 25) + "px";
 
-		var room = getColumnRoom(table, column);
+		var room = getColumnRoom(table, column);	/* ou directement à partir de l'id roomthX */
+		room = room.substring(room.indexOf(' '));
 		fillRoomSelecter(room);
+
 		fillMovieSelecter();
 
 

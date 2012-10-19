@@ -13,10 +13,14 @@
 <?php
 
 	include('date.php');
-	include('../../model/db_connexion.php');
+	include_once('../../model/db_connexion.php');
+	include_once('../../model/programmation/get_cinemas.php');
 
-	$cinemas = $db->query('SELECT nom FROM cinemas');
-
+	$cinemas = get_cinemas();
+	foreach($cinemas as $key => $cine)
+	{
+		$cinemas[$key]['nom'] = htmlspecialchars($cine['nom']);
+	}
 ?>
 
 	<div class="navbar">
@@ -27,9 +31,10 @@
   					<option>Sélectionner un cinéma</option>
   					<option>---</option>
 					<?php
-						while ($cinema = $cinemas->fetch())
-							echo "<option value='".$cinema['nom']."'>".$cinema['nom']."</option><br />";
-						$cinemas->closeCursor();
+						foreach($cinemas as $cine)
+						{
+							echo "<option value='".$cine['nom']."'>".$cine['nom']."</option><br />";
+						}
 					?>
 				</select>
 
@@ -62,7 +67,7 @@
 ?>
 
 		<div id="navbar-text">
-			Planning du cinéma <?php if (isSet($cinema)) echo "$cinema"; else echo "..." ?>
+			Planning du cinéma <?php if (isSet($cinema)) echo $cinema; else echo "..." ?>
 		</div>
 		<div id="navbar-buttons">
 			<button type="button" title="Valider les modifications" onclick="window.history.back();">
@@ -86,6 +91,11 @@
 		include '../../model/programmation/get_rooms.php';
 
 		$rooms = get_rooms($cinema);
+		if (! $rooms)
+		{
+			exit("<br />Aucune salle a été trouvé pour le cinéma $cinema dans la base de données !");
+		}
+
 		$nb_rooms = count($rooms);
 
 		/* Displaying of the cinema program table for the day chosen */
