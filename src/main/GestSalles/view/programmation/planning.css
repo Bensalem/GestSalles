@@ -23,7 +23,7 @@ html {
 
 #navbar-text {
 	position:relative;
-	left: 23%;
+	left: 15%;
 	line-height: 61px;
 	color: white;
 }
@@ -101,6 +101,11 @@ tbody th, .time-atom-solid, #first-cell {
 .time-atom, .time-atom-solid,
 .time-atom-dashed, .time-atom-dotted {
 	height: 15px;
+}
+
+.greyed-out-td {
+	background-color: #c1bcb5; /*bbb d3dce3*/
+	border-bottom: 0;
 }
 
 .movie-session {
