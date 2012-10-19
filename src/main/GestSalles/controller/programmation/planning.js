@@ -373,7 +373,7 @@
 		}
 
 		var cinema = document.getElementById('cinema').value;
-		ajaxReq.open("GET", "../model/programmation/ajax_cine_movies.php?cinema=" + cinema, true);
+		ajaxReq.open("GET", "../../model/programmation/ajax_cine_movies.php?cinema=" + cinema, true);
 		ajaxReq.send(null);
 
 	}

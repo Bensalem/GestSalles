@@ -5,74 +5,34 @@
 		<meta charset="utf-8">
 		<title>Planning cinéma 2</title>
 
-		<link rel="stylesheet" href="view/programmation/planning.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="../../view/programmation/planning.css" type="text/css" media="screen">
 		<script src="planning.js"></script>
 	</head>
 	<body>
 
 <?php
 
-	date_default_timezone_set('Europe/Paris');
-	setlocale(LC_TIME, 'fr_FR.UTF8', 'fr_FR', 'fra');
-	$days = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+	include('date.php');
+	include('../../model/db_connexion.php');
 
-	function getDateSlash($timestamp)
-	{
-		return strftime('%d/%m/%Y', $timestamp);
-	}
+	$cinemas = $db->query('SELECT nom FROM cinemas');
 
-	function getDateStr($timestamp)
-	{
-		return strftime('%A %d %B %Y', $timestamp);
-	}
-
-?>
-<!--
-		<?php
-			try
-			{
-				$db = new PDO('mysql:host=localhost;dbname=testdb', 'root', '1g57bh32');
-			}
-			catch (Exception $e)
-			{
-				die('Erreur : ' . $e->getMessage());
-			}
-
-
-			$projections = $db->query('SELECT heure_debut FROM projections');
-
-			while ($projection = $projections->fetch())
-			{
-				echo "<br />". $projection['heure_debut'];
-			}
-
-			/* Ne récupérer que les projections de la semaine courante ou de celle qui vient */
-
-			$hour_base = $db->query('SELECT MIN(heure_debut) FROM projections'); /* WHERE heure_debut > ... */
-			
-
-			$projections->closeCursor();
-		?>
--->
-
-<?php
-	if (isSet($_POST['cinemaSelect']) and isSet($_POST['daySelect']))
-	{
-		$cinema = $_POST['cinemaSelect'];
-		$day_timestamp = $_POST['daySelect'];
-	}
 ?>
 
 	<div class="navbar">
 		<div id="navbar-selecter">
 			<form name="cineAndDaySelectForm" action="planning.php" method="post">
+
 				<select name="cinemaSelect" onchange='cinemaSelectHalfSubmit()'>
   					<option>Sélectionner un cinéma</option>
   					<option>---</option>
-  					<option value="Le Rex">Le Rex</option>
-					<option value="Les Variétés">Les Variétés</option>
-					<option value="Ciné+">Ciné+</option>
+					<?php
+						while ($cinema = $cinemas->fetch())
+							echo "<option value='".$cinema['nom']."'>".$cinema['nom']."</option><br />";
+						$cinemas->closeCursor();
+					?>
 				</select>
+
 				<select name="daySelect" onchange='daySelectHalfSubmit()'>
   					<option>Choisir le jour</option>
 					<?php
@@ -93,18 +53,26 @@
 			</form>
 		</div>
 
+<?php
+	if (isSet($_POST['cinemaSelect']) and isSet($_POST['daySelect']))
+	{
+		$cinema = $_POST['cinemaSelect'];
+		$day_timestamp = $_POST['daySelect'];
+	}
+?>
+
 		<div id="navbar-text">
 			Planning du cinéma <?php if (isSet($cinema)) echo "$cinema"; else echo "..." ?>
 		</div>
 		<div id="navbar-buttons">
 			<button type="button" title="Valider les modifications" onclick="window.history.back();">
-				<img src="images/buttons/ok.png" alt="Valider" />
+				<img src="../../images/buttons/ok.png" alt="Valider" />
 			</button>
 			<button type="button" title="Revenir à la page précédente" onclick="window.history.back();">
-				<img src="images/buttons/return.png" alt="Retour" />
+				<img src="../../images/buttons/return.png" alt="Retour" />
 			</button>
 			<button type="button" title="Quitter l'application" onclick="window.history.back();" />
-				<img src="images/buttons/quit.png" alt="Quitter" />
+				<img src="../../images/buttons/quit.png" alt="Quitter" />
 			</button>
 		</div>
 	</div>
@@ -114,11 +82,9 @@
 	{
 		$dateStr = getDateStr($day_timestamp);
 
-		include '../view/programmation/planning-grid.php';
+		include '../../view/programmation/planning_grid.php';
+		include '../../model/programmation/get_rooms.php';
 
-		include('../model/db_connexion.php');
-
-		include('../model/programmation/get_rooms.php');
 		$rooms = get_rooms($cinema);
 		$nb_rooms = count($rooms);
 
