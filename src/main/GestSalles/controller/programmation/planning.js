@@ -94,55 +94,59 @@
 	}
 
 	/*
-	 * day: from it we know the column of tdObj
+	 * column: the column of tdObj (without counting the first column
+	 * i.e. the column of the hours)
 	 */
-	function restrictAreaTimeAvailability(tdObj, tdSpan, day)
+	function restrictAreaTimeAvailability(tdObj, tdSpan, column)
 	{
 		var availableQuarters = 1;
 		var td = tdObj;
-		var column;
+		var realColumn;
 		for (var i=1; i <= maxTimeAtomsSpanned; i++)
 		{
 			var tr = td.parentNode;
 			tr = getPreviousSibling(tr);
-			if (!tr)
+			if (!tr) // We reached the top of the table
 				break;
-			column = (getNthChild(tr).nodeName != "TH") ? day : day + 1;
-			td = getNthChild(tr, column);
+			realColumn = getRealColumn(tr, column);
+			td = getNthChild(tr, realColumn);
 
-			/* Replacement of the last attribute (updating the number of
-			   available quarters of hour from this td) */
-			var onclickValue = td.getAttribute('onclick');
-			onclickValue = onclickValue.slice(0, -2);
-			onclickValue = onclickValue.concat(availableQuarters + ")");
-			td.setAttribute('onclick', onclickValue);
-
+			// Replacement of the last attribute (updating the number of
+			// available quarters of hour from this td)
+			setOnclickAvailableQuarters(td, availableQuarters);
 			availableQuarters++;
 		}
-
 		td = tdObj;
 		availableQuarters = 0;
-/*alert(td.getAttribute('onclick'));*/
 
-		var onclickValue = td.getAttribute('onclick');
-		onclickValue = onclickValue.slice(0, -2);
-		onclickValue = onclickValue.concat(availableQuarters + ")");
-		td.setAttribute('onclick', onclickValue);
+		setOnclickAvailableQuarters(td, availableQuarters);
 		for (var i=1; i < tdSpan; i++)
 		{
 			var tr = td.parentNode;
 			tr = getNextSibling(tr); // does exist
-			column = (getNthChild(tr).nodeName != "TH") ? day : day + 1;
-			td = getNthChild(tr, column);
+			realColumn = getRealColumn(tr, column);
+			td = getNthChild(tr, realColumn);
 
-			/* Sets to 0 the number of available quarters of hour
-				from this td, as there is already an implanted session
-				at this place */
-			onclickValue = td.getAttribute('onclick');
-			onclickValue = onclickValue.slice(0, -2);
-			onclickValue = onclickValue.concat(availableQuarters + ")");
-			td.setAttribute('onclick', onclickValue);
+			// Sets to 0 the number of available quarters of hour
+			// from this td, as there is already an implanted session
+			// at this place
+			setOnclickAvailableQuarters(td, availableQuarters);
 		}
+	}
+
+	function getRealColumn(tr, col)
+	{
+		// There's one column more at tables' first row, that of the <th>
+		// which spans over all the other rows
+		return (getNthChild(tr).nodeName != "TH") ? col : col + 1;
+	}
+
+	function setOnclickAvailableQuarters(td, availableQuarters)
+	{
+		var onclickValue = td.getAttribute('onclick');
+		onclickValue = onclickValue.slice(0, -2);
+		onclickValue = onclickValue.concat(availableQuarters + ")");
+		td.setAttribute('onclick', onclickValue);
 	}
 
 	/*
@@ -195,7 +199,7 @@
 
 	/*
 	 * tdOb: the <td> the user clicked
-	 * day:										à suppr ?
+	 * column: the colum of tdObj
 	 * firstHour and lastHour: first and last hour of the table; with
 	 *  them we compute the availableQuarters and the position on the screen
 	 *  corresponding to the beginning of the session (beginTimePos).
@@ -203,7 +207,7 @@
 	 * hourQuarter: the quarter of hour the td corresponds to.
 	 * availableQuarters: number of rows a session can span over from tdObj
 	 */
-	function proposeSession(tdObj, day, table, firstHour, lastHour, hour, hourQuarter, availableQuarters)
+	function proposeSession(tdObj, column, table, firstHour, lastHour, hour, hourQuarter, availableQuarters)
 	{
 		if (availableQuarters <= 0 // to avoid overlapping of session DIVs
 			|| formIsDisplayed == true) 
@@ -242,7 +246,7 @@
 		var nbQuartersSpanned = availableQuarters;
 		var beginTimePos = getBeginTimePos(table, firstHour, lastHour, hour, beginMinInPixels)
 
-		setSessionPosAndDimensions(sessionModel, table, day + 1, beginTimePos, nbQuartersSpanned);
+		setSessionPosAndDimensions(sessionModel, table, column + 1, beginTimePos, nbQuartersSpanned);
 
 		/* We put an id to the td which corresponds to the beginning of the
 			session so we can later get this td when we want to implant,
@@ -250,7 +254,7 @@
 		var sessionBeginTdId = nextSessionBeginTdId();
 		tdObj.setAttribute('id', sessionBeginTdId);
 
-		sessionModel.setAttribute('ondblclick', 'displayMovieSessionForm("'+ sessionBeginTdId +'",'+ nbQuartersSpanned +','+ table +','+ day +')');
+		sessionModel.setAttribute('ondblclick', 'displayMovieSessionForm("'+ sessionBeginTdId +'",'+ nbQuartersSpanned +','+ table +','+ column +')');
 		sessionModel.style.visibility = "visible";
 
 		var endMin = (beginMin + nbQuartersSpanned * 15) % 60;
@@ -319,9 +323,9 @@
 		doivent être mis en db; et décrémenter en db le nb de copies de
 		ce film */
 
-	function sessionFormSubmit(sessionBeginTd, tdSpan, day)
+	function sessionFormSubmit(sessionBeginTd, tdSpan, column)
 	{
-		implant(sessionBeginTd, tdSpan, day);
+		implant(sessionBeginTd, tdSpan, column);
 		hideSessionForm();
 	}
 

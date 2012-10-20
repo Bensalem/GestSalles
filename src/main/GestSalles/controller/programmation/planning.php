@@ -38,7 +38,7 @@
 					?>
 				</select>
 
-				<select name="daySelect" onchange='daySelectHalfSubmit()'>
+				<select name="daySelect" id="day-select" onchange='daySelectHalfSubmit()'>
   					<option>Choisir le jour</option>
 					<?php
 						for ($i = 0; $i < 5; $i++)

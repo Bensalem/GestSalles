@@ -21,6 +21,10 @@ html {
 	padding-left: 12px;
 }
 
+#day-select {
+	width: 160px;
+}
+
 #navbar-text {
 	position:relative;
 	left: 15%;
