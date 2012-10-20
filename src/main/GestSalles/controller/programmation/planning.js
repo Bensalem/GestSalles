@@ -1,8 +1,33 @@
 	cinemaSelected = daySelected = false;
-	maxTimeAtomsSpanned = 4;
+	maxNbRoomsPerTable = 7;
+	maxTimeAtomsSpannedAtFirst = 4;
 	formIsDisplayed = false;
 	aSessionHasBeenImplanted = false;
 	sessionNum = 1;
+
+/*********** Cinema and day selecters functions ************/
+
+	function cinemaSelectHalfSubmit()
+	{
+		cinemaSelected = true;
+		if (daySelected)
+		{
+			document.cineAndDaySelectForm.submit();
+			cinemaSelected = false; // also set to false if the selected value is not a valid cinema
+		}
+	}
+
+	function daySelectHalfSubmit()
+	{
+		daySelected = true;
+		if (cinemaSelected)
+		{
+			document.cineAndDaySelectForm.submit();
+			daySelected = false;
+		}
+	}
+
+/*********** Grid elements info retrieval functions ************/
 
 	function findPos(obj)
 	{
@@ -53,16 +78,6 @@
 		return child;
 	}
 
-	function highlight(obj)
-	{
-		obj.style.backgroundColor = "#f6f6f5";
-	}
-
-	function unHighlight(obj)
-	{
-		obj.style.backgroundColor = "#ebeaeb";
-	}
-
 	function getColumnFirstCell(table, column)
 	{
 		var firstTr = getNthChild(document.getElementById("tbody"+table));
@@ -72,26 +87,13 @@
 
 	function getColumnRoom(table, column)
 	{
-		var firstThead = getNthChild(document.getElementById("thead"+table));
-		var roomCell = getNthChild(firstThead, column+1);
-		return roomCell.innerHTML;
+		var roomCellNum = column + (table - 1) * maxNbRoomsPerTable;
+		var room = document.getElementById("room"+roomCellNum).innerHTML;
+		room = room.substring(room.indexOf(' '));
+		return room;
 	}
 
-	function cloneSessionDiv(model)
-	{
-		var newSessionDiv = document.createElement("DIV");
-		newSessionDiv.className = model.className;
-		/* à rajouter onmousedlbclk: appeler popup de modif et quand modif terminée, déshilighter */
-		newSessionDiv.setAttribute('onmouseover', 'highlight(this)');
-		newSessionDiv.setAttribute('onmouseout', 'unHighlight(this)');
-		newSessionDiv.innerHTML = model.innerHTML;
-		newSessionDiv.style.position = model.style.position;
-		newSessionDiv.style.top = model.style.top;
-		newSessionDiv.style.left = model.style.left;
-		newSessionDiv.style.width = model.style.width;
-		newSessionDiv.style.height = model.style.height;
-		return newSessionDiv;
-	}
+/*********** Non-availabity of areas for movie session div/mark implantation ************/
 
 	/*
 	 * column: the column of tdObj (without counting the first column
@@ -102,7 +104,7 @@
 		var availableQuarters = 1;
 		var td = tdObj;
 		var realColumn;
-		for (var i=1; i <= maxTimeAtomsSpanned; i++)
+		for (var i=1; i <= maxTimeAtomsSpannedAtFirst; i++)
 		{
 			var tr = td.parentNode;
 			tr = getPreviousSibling(tr);
@@ -149,13 +151,16 @@
 		td.setAttribute('onclick', onclickValue);
 	}
 
+/*********** Implantation of a Movie Session div/mark ************/
+
 	/*
 	 * Make a session div from a model and attach it to the grid
+	 * this function is called when the session has been validated
+	 * with the form.
 	 * tdSpan: number of TDs spanned by the session
 	 */
 	function implant(sessionBeginTd, tdSpan, column)
 	{
-		/* If the session has been validated with the form by pressing submit */
 		var div = document.getElementById("movie-sessions");
 		var model = document.getElementById("movie-session-model");
 		newSession = cloneSessionDiv(model);
@@ -166,36 +171,27 @@
 		/*newSession.setAttribute('onclick', ''); 						popup*/
 
 
-
-		/* Avoid overlapping of session divs */
+		// Avoid overlapping of session divs
 		restrictAreaTimeAvailability(sessionBeginTd, tdSpan, column);
 	}
 
-
-	/*
-	 * Display a session div using the column's first cell as a model cell
-	 * to determine the width, height and pos of the session div.
-	 *
-	 * column: the session's column
-	 * beginTimePos: where the session div must begins; in pixels;
-	 * relative to the column's first cell position.
-	 * nbQuartersSpanned: number of the session spans over, as a cell
-	 * represents a quarter of an hour.
-	 */
-	function setSessionPosAndDimensions(movieSession, table, column, beginTimePos, nbQuartersSpanned)
+	function cloneSessionDiv(model)
 	{
-		var paddingRight = 15, paddingHeight = 2;
-		var modelCell = getColumnFirstCell(table, column);
-		var modelCellPos = findPos(modelCell);
-		var cellWidth = modelCell.offsetWidth - paddingRight;
-		var cellHeight = modelCell.offsetHeight * nbQuartersSpanned - paddingHeight;
-
-		movieSession.style.position = "absolute";
-		movieSession.style.top = (modelCellPos[0] + beginTimePos) +'px';
-		movieSession.style.left = modelCellPos[1] +'px';
-		movieSession.style.width = cellWidth +'px';
-		movieSession.style.height = cellHeight +'px';
+		var newSessionDiv = document.createElement("DIV");
+		newSessionDiv.className = model.className;
+		/* à rajouter onmousedlbclk: appeler popup de modif et quand modif terminée, déshilighter */
+		newSessionDiv.setAttribute('onmouseover', 'highlight(this)');
+		newSessionDiv.setAttribute('onmouseout', 'unHighlight(this)');
+		newSessionDiv.innerHTML = model.innerHTML;
+		newSessionDiv.style.position = model.style.position;
+		newSessionDiv.style.top = model.style.top;
+		newSessionDiv.style.left = model.style.left;
+		newSessionDiv.style.width = model.style.width;
+		newSessionDiv.style.height = model.style.height;
+		return newSessionDiv;
 	}
+
+/*********** Proposal of a Movie Session implantation position on grid ************/
 
 	/*
 	 * tdOb: the <td> the user clicked
@@ -254,13 +250,39 @@
 		var sessionBeginTdId = nextSessionBeginTdId();
 		tdObj.setAttribute('id', sessionBeginTdId);
 
-		sessionModel.setAttribute('ondblclick', 'displayMovieSessionForm("'+ sessionBeginTdId +'",'+ nbQuartersSpanned +','+ table +','+ column +')');
-		sessionModel.style.visibility = "visible";
-
-		var endMin = (beginMin + nbQuartersSpanned * 15) % 60;
+		var endMin = getEndMin(beginMin, nbQuartersSpanned);
 		fillSessionDivContent(sessionModel, hour, beginMin, hour + 1, endMin);
+
+		sessionModel.setAttribute('ondblclick', 'displayMovieSessionForm("'+ sessionBeginTdId +'",'+ nbQuartersSpanned +','
+							+ table +','+ column +','+hour+','+beginMin+','+(hour+1)+','+endMin+')');
+		sessionModel.style.visibility = "visible";
 	}
 
+
+	/*
+	 * Display a session div using the column's first cell as a model cell
+	 * to determine the width, height and pos of the session div.
+	 *
+	 * column: the session's column
+	 * beginTimePos: where the session div must begins; in pixels;
+	 * relative to the column's first cell position.
+	 * nbQuartersSpanned: number of the session spans over, as a cell
+	 * represents a quarter of an hour.
+	 */
+	function setSessionPosAndDimensions(movieSession, table, column, beginTimePos, nbQuartersSpanned)
+	{
+		var paddingRight = 15, paddingHeight = 2;
+		var modelCell = getColumnFirstCell(table, column);
+		var modelCellPos = findPos(modelCell);
+		var cellWidth = modelCell.offsetWidth - paddingRight;
+		var cellHeight = modelCell.offsetHeight * nbQuartersSpanned - paddingHeight;
+
+		movieSession.style.position = "absolute";
+		movieSession.style.top = (modelCellPos[0] + beginTimePos) +'px';
+		movieSession.style.left = modelCellPos[1] +'px';
+		movieSession.style.width = cellWidth +'px';
+		movieSession.style.height = cellHeight +'px';
+	}
 
 	function getBeginTimePos(table, firstHour, lastHour, hour, beginMinInPixels)
 	{
@@ -269,11 +291,21 @@
 		return (hour - firstHour) * hourHeight + beginMinInPixels;
 	}
 
-	function fillSessionDivContent(movieSession, hour, beginMin, endHour, endMin)
+	function fillSessionDivContent(movieSession, beginHour, beginMin, endHour, endMin)
 	{
-		var beginTime = hour + ":" + ((beginMin <= 0) ? "0" + beginMin : beginMin);
-		var endTime = endHour + ":" + ((endMin <= 0) ? "0" + endMin : endMin);
+		var beginTime = beginHour + ":" + formatMins(beginMin);
+		var endTime = endHour + ":" + formatMins(endMin);
 		movieSession.innerHTML = "<span style=\"font-size: 10px; font-weight: bold;\">" + beginTime + " – " + endTime + "</span>";
+	}
+
+	function getEndMin(beginMin, nbQuartersSpanned)
+	{
+		return (beginMin + nbQuartersSpanned * 15) % 60;
+	}
+
+	function formatMins(mins)
+	{
+		return (mins < 10) ? "0" + mins : mins;
 	}
 
 	function nextSessionBeginTdId()
@@ -285,7 +317,7 @@
 		}
 		else
 		{
-			/* We want to keep the same id as before */
+			// We want to keep the same id as before
 			oldProposedTd = document.getElementById("td" + sessionNum);
 			if (oldProposedTd)
 				oldProposedTd.setAttribute('id', '');
@@ -293,9 +325,19 @@
 		return "td" + sessionNum;
 	}
 
-/***** Movie Session Form Functions ******/
+	function highlight(obj)
+	{
+		obj.style.backgroundColor = "#f6f6f5";
+	}
 
-	function displayMovieSessionForm(sessionBeginTdId, tdSpan, table, column)
+	function unHighlight(obj)
+	{
+		obj.style.backgroundColor = "#ebeaeb";
+	}
+
+/*********** Movie Session Form functions ************/
+
+	function displayMovieSessionForm(sessionBeginTdId, tdSpan, table, column, beginHour, beginMin, endHour, endMin)
 	{
 		formIsDisplayed = true;
 		var sessionFormDiv = document.getElementById("movie-session-form-div");
@@ -305,18 +347,16 @@
 		sessionFormDiv.style.top = (sessionModel.offsetTop - 25) + "px";
 
 		var room = getColumnRoom(table, column);	/* ou directement à partir de l'id roomthX */
-		room = room.substring(room.indexOf(' '));
 		fillRoomSelecter(room);
-
 		fillMovieSelecter();
-
-
+		setTimeSlot(formatMins(beginHour), formatMins(endHour), formatMins(beginMin), formatMins(endMin));
 /*
 
 		document.getElementById("").innerHTML
 		document.getElementById("sessionFormDate").innerHTML = ;
 */
 		document.movieSessionForm.saveButton.setAttribute('onclick', 'sessionFormSubmit('+sessionBeginTdId+','+tdSpan+','+column+')');
+		document.movieSessionForm.resetButton.setAttribute('onclick', 'sessionFormReset('+beginHour+','+endHour+','+beginMin+','+endMin+')');
 	}
 
 	/* la semaine, la date et l'heure; l'id du film, le cinéma, la salle
@@ -335,16 +375,23 @@
 		formIsDisplayed = false;
 	}
 
+	function sessionFormReset(beginHour, endHour, beginMin, endMin)
+	{
+		setTimeSlot(formatMins(beginHour), formatMins(endHour), formatMins(beginMin), formatMins(endMin));
+	}
+
 	function sessionFormAbort()
 	{
 		hideSessionForm();
 	}
-/*
-	function setDayDate()
+
+	function setTimeSlot(beginHour, endHour, beginMin, endMin)
 	{
-		
+		document.movieSessionForm.beginHour.value = beginHour;
+		document.movieSessionForm.endHour.value = endHour;
+		document.movieSessionForm.beginMin.value = beginMin;
+		document.movieSessionForm.endMin.value = endMin;
 	}
-*/
 
 	function fillRoomSelecter(room)
 	{
@@ -382,27 +429,5 @@
 		ajaxReq.open("GET", "../../model/programmation/ajax_cine_movies.php?cinema=" + cinema, true);
 		ajaxReq.send(null);
 
-	}
-
-/************ Cinema and Day Selecters *************/
-
-	function cinemaSelectHalfSubmit()
-	{
-		cinemaSelected = true;
-		if (daySelected)
-		{
-			document.cineAndDaySelectForm.submit();
-			cinemaSelected = false; // also set to false if the selected value is not a valid cinema
-		}
-	}
-
-	function daySelectHalfSubmit()
-	{
-		daySelected = true;
-		if (cinemaSelected)
-		{
-			document.cineAndDaySelectForm.submit();
-			daySelected = false;
-		}
 	}
 

@@ -132,10 +132,12 @@
 			<p style="margin-top: 0px;"><b>Date :</b> <span id="sessionFormDate" style="font-size: 14px;"><?php echo $dateStr ?></span></p>
 
 			<p><b>Horaire :</b>
-				<input name="beginHour" id="hour" value="18" type="text" class="time-slot" readonly="readonly"> :
-				<input name="beginMin" value="00" type="text" size="2" class="time-slot" /> –
-				<input name="endHour" id="hour" value="19" type="text" class="time-slot" readonly="readonly"> :
-				<input name="endMin" value="30" type="text" size="2" class="time-slot" />
+
+
+				<input name="beginHour" id="begin-hour" value="18" type="text" class="time-slot"> :
+				<input name="beginMin" id="begin-min" value="00" type="text" size="2" class="time-slot" /> –
+				<input name="endHour" id="end-hour" value="19" type="text" class="time-slot"> :
+				<input name="endMin" id="end-min" value="30" type="text" size="2" class="time-slot" />
 			</p>
 
 			<input type="hidden" id="cinema" value="<?php echo $cinema ?>">
@@ -156,7 +158,7 @@
 
 			<div style="text-align: center;">
 				<input type="button" name="saveButton" value="Enregistrer" onclick="sessionFormSubmit()" />
-				<input type="button" value="Effacer" onclick="reset()"/>
+				<input type="button" name="resetButton" value="Effacer" onclick="sessionFormReset()"/>
 				<input type="button" value="Annuler" onclick="sessionFormAbort()"/>
 			</div>
 		</form>
