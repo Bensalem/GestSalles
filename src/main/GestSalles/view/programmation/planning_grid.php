@@ -32,13 +32,14 @@ function grid($nb_columns, $greyed_out_cols, $column_values, $start_val_idx, $ca
 		$nb_rows_in_hour = 4;
 		$first_hour = 8;
 		$last_hour = 11;
+		$row_cpt = 0;
 
 		for ($hour = $first_hour; $hour < $last_hour; $hour++)
 		{
 
-			for ($row = 1; $row <= $nb_rows_in_hour; $row++)
+			for ($row = 1; $row <= $nb_rows_in_hour; $row++, $row_cpt++)
 			{
-				echo "<tr>\n";
+				echo "<tr id=\"t$table_cpt-tr$row_cpt\">\n";
 				if ($row == 1)
 					echo "\t<th rowspan=$nb_rows_in_hour>$hour:00 - ".($hour+1).":00</th>\n";
 
