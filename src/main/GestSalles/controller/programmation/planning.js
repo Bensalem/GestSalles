@@ -158,7 +158,7 @@
 	 * column: the colum of tdObj
 	 * firstHour and lastHour: first and last hour of the table; with
 	 *  them we compute the availableQuarters and the position on the screen
-	 *  corresponding to the beginning of the session (beginHourPos).
+	 *  corresponding to the beginning of the session (beginTimePos).
 	 * hour: the hour corresponding to the td
 	 * hourQuarter: the quarter of hour the td corresponds to.
 	 * availableQuarters: number of rows a session can span over from tdObj
@@ -198,11 +198,11 @@
 		var endHour = getEndHour(hour, beginMin, nbQuartersSpanned);
 		var endMin = getEndMin(beginMin, nbQuartersSpanned);
 
-		setSessionPosAndDimensions(sessionModel, table, column, tableFirstHour, tableLastHour, hour, endHour, beginMin, endMin);
+		setSessionPosAndDimensions(sessionModel, table, column, tableFirstHour, hour, endHour, beginMin, endMin);
 
 		/* We put an id to the td which corresponds to the beginning of the
 			session so we can later get this td when we want to implant,
-			move or remove the session div (though maybe it will be useless) */
+			move or remove the session div (though it will be maybe useless) */
 		var sessionBeginTdId = nextSessionBeginTdId();
 		tdObj.setAttribute('id', sessionBeginTdId);
 
@@ -219,16 +219,15 @@
 	 * to determine the width, height and pos of the session div.
 	 *
 	 * column: the session's column
-	 * beginHourPos: where the session div must begins; in pixels;
+	 * beginTimePos: where the session div must begins; in pixels;
 	 * relative to the column's first cell position.
 	 * nbQuartersSpanned: number of TDs the session spans over, as a cell
 	 *  represents a quarter of an hour.
 	 */
-	function setSessionPosAndDimensions(movieSession, table, column, tableFirstHour, tableLastHour, beginHour, endHour, beginMin, endMin)
+	function setSessionPosAndDimensions(movieSession, table, column, tableFirstHour, beginHour, endHour, beginMin, endMin)
 	{
 		//tableFirstHour &tableLastHour: à mettre avec php dans un div spécial et le récup dedans
-		//tableLastHour ne sert à rien dans cette fonction?
-		var beginHourPos = getBeginHourPos(table, tableFirstHour, tableLastHour, beginHour, beginMin);
+		var beginTimePos = getBeginTimePos(table, tableFirstHour, beginHour, beginMin);
 
 		var modelCell = getColumnFirstCell(table, column + 1);
 		var modelCellPos = findPos(modelCell);
@@ -237,19 +236,20 @@
 		var sessionHeight = computeHeight(beginHour, endHour, beginMin, endMin) - paddingHeight;
 
 		movieSession.style.position = "absolute";
-		movieSession.style.top = (modelCellPos[0] + beginHourPos) +'px';
+		movieSession.style.top = (modelCellPos[0] + beginTimePos) +'px';
 		movieSession.style.left = modelCellPos[1] +'px';
 		movieSession.style.width = sessionWidth +'px';
 		movieSession.style.height = sessionHeight +'px';
 	}
 
-	function getBeginHourPos(table, tableFirstHour, tableLastHour, beginHour, beginMin)
+	function getBeginTimePos(table, tableFirstHour, beginHour, beginMin)
 	{
 		var fiveMinsInPixels = 6;
 		var hourHeight = fiveMinsInPixels * 12; // or oneMinInPixel * 60 if we had a oneMinInPixel
 		// If we manage to have oneMinInPixel = 1, we can do beginMinInPixels = beginMin * oneMinInPixel
 		// the displaying of session marks on the grid will be more accurate
-		var beginMinInPixels = Math.floor(beginMin / 5) * fiveMinsInPixels;
+		var beginMinInPixels = (beginMin / 5) * fiveMinsInPixels;
+
 		var intertableSpace = document.getElementById("first-cell").offsetHeight + 28;
 		return (beginHour - tableFirstHour) * hourHeight + beginMinInPixels;
 	}
@@ -258,7 +258,7 @@
 	{
 		var fiveMinsInPixels = 6;
 		var totalMins = (endHour - (beginHour + 1)) * 60 + (60 - beginMin) + endMin;
-		return Math.floor(totalMins / 5) * 6; // or round maybe
+		return (totalMins / 5) * 6;
 	}
 
 	function fillSessionDivContent(movieSession, beginHour, endHour, beginMin, endMin)
@@ -433,7 +433,7 @@
 								+ Math.ceil(endMin / 15);
 
 		// We implant a clone of the session mark/model on the grid
-		movieSession = implant(sessionBeginTd, nbQuartersSpanned, column);
+		movieSession = implantSession(sessionBeginTd, nbQuartersSpanned, column);
 
 		/* Ici la semaine, la date et l'heure; l'id du film, le cinéma, la salle
 		doivent être mis en db; et décrémenter en db le nb de copies de
@@ -460,7 +460,7 @@
 	 * with the form.
 	 * tdSpan: number of TDs spanned by the session
 	 */
-	function implant(sessionBeginTd, tdSpan, column)
+	function implantSession(sessionBeginTd, tdSpan, column)
 	{
 		var div = document.getElementById("movie-sessions");
 		var model = document.getElementById("movie-session-model");
@@ -481,7 +481,7 @@
 	{
 		var newSessionDiv = document.createElement("DIV");
 		newSessionDiv.className = model.className;
-		/* à rajouter onmousedlbclk: appeler popup de modif et quand modif terminée, déshilighter */
+		/* à rajouter onmousedlbclk: appeler formulaire de modif (ou dans implantSession) et quand modif terminée, déshilighter */
 		newSessionDiv.setAttribute('onmouseover', 'highlight(this)');
 		newSessionDiv.setAttribute('onmouseout', 'unHighlight(this)');
 		newSessionDiv.innerHTML = model.innerHTML;
@@ -495,16 +495,14 @@
 
 	function setSessionHeightAndTop(movieSession, table, column, tableFirstHour, tableLastHour, beginHour, endHour, beginMin, endMin)
 	{
-		//tableFirstHour &tableLastHour: à mettre avec php dans un div spécial et le récup dedans
-		//tableLastHour ne sert à rien dans cette fonction?
-		var beginHourPos = getBeginHourPos(table, tableFirstHour, tableLastHour, beginHour, beginMin);
+		var beginTimePos = getBeginTimePos(table, tableFirstHour, beginHour, beginMin);
 		var modelCell = getColumnFirstCell(table, column);
 		var modelCellPos = findPos(modelCell);
 		var paddingHeight = 2;
 
 		var sessionHeight = computeHeight(beginHour, endHour, beginMin, endMin) - paddingHeight;
 
-		movieSession.style.top = (modelCellPos[0] + beginHourPos) +'px';
+		movieSession.style.top = (modelCellPos[0] + beginTimePos) +'px';
 		movieSession.style.height = sessionHeight +'px';
 
 		var beginMinFromFirstHour = (beginHour * 60) + beginMin - (tableFirstHour * 60);
@@ -514,7 +512,6 @@
 		// from there and not from the one which precedes.
 		var beginQuarterNum = Math.floor(beginMinFromFirstHour / 15);
 		var beginSessionTd = getBeginSessionTd(table, column, beginQuarterNum);
-
 		return beginSessionTd;
 	}
 
