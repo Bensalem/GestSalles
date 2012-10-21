@@ -3,7 +3,7 @@ function get_cinemas()
 {
 	global $db;
 
-	$req = $db->query('SELECT nom FROM cinemas');
+	$req = $db->query('SELECT nom_cinema FROM cinemas');
 
 	$cinemas = $req->fetchAll();
 	$req->closeCursor();

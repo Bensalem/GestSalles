@@ -16,7 +16,7 @@ function grid($nb_columns, $greyed_out_cols, $column_values, $start_val_idx, $ca
 				$val_idx = $start_val_idx;
 				for ($col = 0; $col < $nb_columns; $col++)
 				{
-					echo "<th id=\"room". ($val_idx + 1) ."\">Salle ". $column_values[$val_idx]['salle'] ."</th>";
+					echo "<th id=\"room". ($val_idx + 1) ."\">Salle ". $column_values[$val_idx]['nom_salle'] ."</th>";
 					$val_idx++;
 				}
 				for ($col = 0; $col < $greyed_out_cols; $col++)

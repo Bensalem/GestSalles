@@ -4,6 +4,7 @@
 	formIsDisplayed = false;
 	aSessionHasBeenImplanted = false;
 	sessionNum = 1;
+	addSessionOperationStatus = 0;
 
 /*********** Cinema and day selecters functions ************/
 
@@ -89,7 +90,7 @@
 	{
 		var roomCellNum = column + (table - 1) * maxNbRoomsPerTable;
 		var room = document.getElementById("room" + roomCellNum).innerHTML;
-		room = room.substring(room.indexOf(' '));
+		room = room.substring(room.indexOf(' ') + 1);
 		return room;
 	}
 
@@ -206,7 +207,7 @@
 		var sessionBeginTdId = nextSessionBeginTdId();
 		tdObj.setAttribute('id', sessionBeginTdId);
 
-		fillSessionDivContent(sessionModel, hour, endHour, formatMins(beginMin), formatMins(endMin));
+		fillSessionDivContent(sessionModel, hour, endHour, formatHour(beginMin), formatHour(endMin));
 
 		sessionModel.setAttribute('ondblclick', 'displayMovieSessionForm("'+ sessionBeginTdId +'",'+ nbQuartersSpanned +','
 							+ table +','+ column +','+tableFirstHour+','+tableLastHour+','+hour+','+beginMin+','+endHour+','+endMin+')');
@@ -245,9 +246,7 @@
 	function getBeginTimePos(table, tableFirstHour, beginHour, beginMin)
 	{
 		var fiveMinsInPixels = 6;
-		var hourHeight = fiveMinsInPixels * 12; // or oneMinInPixel * 60 if we had a oneMinInPixel
-		// If we manage to have oneMinInPixel = 1, we can do beginMinInPixels = beginMin * oneMinInPixel
-		// the displaying of session marks on the grid will be more accurate
+		var hourHeight = fiveMinsInPixels * 12;
 		var beginMinInPixels = (beginMin / 5) * fiveMinsInPixels;
 
 		var intertableSpace = document.getElementById("first-cell").offsetHeight + 28;
@@ -278,7 +277,7 @@
 		return (beginMin + nbQuartersSpanned * 15) % 60;
 	}
 
-	function formatMins(mins)
+	function formatHour(mins)
 	{
 		return (mins < 10) ? "0" + mins : mins;
 	}
@@ -324,7 +323,7 @@
 		var room = getColumnRoom(table, column);
 		fillRoomSelecter(room);
 		fillMovieSelecter();
-		setTimeSlot(formatMins(beginHour), formatMins(endHour), formatMins(beginMin), formatMins(endMin));
+		setTimeSlot(formatHour(beginHour), formatHour(endHour), formatHour(beginMin), formatHour(endMin));
 
 		document.movieSessionForm.saveButton.setAttribute('onclick', 'sessionFormSubmit('+sessionBeginTdId+','+tdSpan+','+table+','+column+','+tableFirstHour+','+tableLastHour+')');
 		document.movieSessionForm.resetButton.setAttribute('onclick', 'sessionFormReset('+beginHour+','+endHour+','+beginMin+','+endMin+')');
@@ -332,7 +331,7 @@
 
 	function sessionFormReset(beginHour, endHour, beginMin, endMin)
 	{
-		setTimeSlot(formatMins(beginHour), formatMins(endHour), formatMins(beginMin), formatMins(endMin));
+		setTimeSlot(formatHour(beginHour), formatHour(endHour), formatHour(beginMin), formatHour(endMin));
 	}
 
 	function sessionFormAbort()
@@ -361,14 +360,10 @@
 		opt.text = room;
 	}
 
-	function fillMovieSelecter()
+
+	function getXMLHttpRequest()
 	{
-
-		selecter = document.getElementById('movie-selecter');
-		while (selecter.firstChild)
-			selecter.removeChild(selecter.firstChild);
-
-		var ajaxReq;
+		var ajaxReq = null;
 		if (window.XMLHttpRequest)
 		{
 			ajaxReq = new XMLHttpRequest();
@@ -377,7 +372,18 @@
 		{
 			ajaxReq = new ActiveXObject("Microsoft.XMLHTTP");
 		}
+		return ajaxReq;
+	}
 
+	function fillMovieSelecter()
+	{
+		var selecter = document.getElementById('movie-selecter');
+		while (selecter.firstChild)
+			selecter.removeChild(selecter.firstChild);
+
+		var cinema = document.getElementById('cinema').value;
+
+		var ajaxReq = getXMLHttpRequest();
 		ajaxReq.onreadystatechange = function()
 		{
 			if (ajaxReq.readyState == 4 && ajaxReq.status == 200)
@@ -385,11 +391,29 @@
 				selecter.innerHTML = ajaxReq.responseText;
 			}
 		}
+		ajaxReq.open("GET", "../../model/programmation/ajax_get_cine_movies.php?cinema=" + cinema, true);
+		ajaxReq.send(null);
+	}
 
-		var cinema = document.getElementById('cinema').value;
-		ajaxReq.open("GET", "../../model/programmation/ajax_cine_movies.php?cinema=" + cinema, true);
+	function addNewMovieSession(cinema, date, movie, room, beginTime, endTime)
+	{
+		var selecter = document.getElementById('movie-selecter');
+
+		var ajaxReq = getXMLHttpRequest();
+
+		var urlBase = "../../model/programmation/ajax_add_new_session.php?";
+		var url = urlBase +"cinema="+ cinema +"&date="+ date +"&movie="+ movie
+						+ "&room="+ room +"&begin="+ beginTime +"&end="+ endTime;
+
+		// "false" i.e. synchronous because we don't want to continue executing
+		// sessionFormSubmit()'s code if the session wasn't added in the db.
+		ajaxReq.open("GET", url, false);
 		ajaxReq.send(null);
 
+		if (ajaxReq.readyState == 4 /*&& ajaxReq.status == 200*/)
+		{
+			return ajaxReq.responseText;
+		}
 	}
 
 	/*
@@ -405,14 +429,10 @@
 	{
 		hideSessionForm();
 
-		var beginHourStr = document.movieSessionForm.beginHour.value;
-		var endHourStr = document.movieSessionForm.endHour.value;
-		var beginMinStr = document.movieSessionForm.beginMin.value;
-		var endMinStr = document.movieSessionForm.endMin.value;
-		var beginHour = parseInt(beginHourStr, 10);
-		var endHour = parseInt(endHourStr, 10);
-		var beginMin = parseInt(beginMinStr, 10);
-		var endMin = parseInt(endMinStr, 10);
+		var beginHour = parseInt(document.movieSessionForm.beginHour.value, 10);
+		var endHour = parseInt(document.movieSessionForm.endHour.value, 10);
+		var beginMin = parseInt(document.movieSessionForm.beginMin.value, 10);
+		var endMin = parseInt(document.movieSessionForm.endMin.value, 10);
 
 		if (! checkhInterval(beginHour, endHour, beginMin, endMin, tableFirstHour, tableLastHour+1))
 		{
@@ -420,11 +440,31 @@
 			return;
 		}
 
+		/* if(..funct si count = 0 return true) Here we must check in the db that there's no overlapping */
+
+		/* We add the new session in the DB */
+		var cinema = document.getElementById('cinema').value;
+		var date = document.getElementById('date').value;
+		var movie = getSelectValue('movie-selecter');
+		var room = getSelectValue('room-selecter');
+
+		var beginTime = toTimeFormat(beginHour, beginMin, 0);
+		var endTime = toTimeFormat(endHour, endMin, 0);
+
+		var status = addNewMovieSession(cinema, date, movie, room, beginTime, endTime);
+		if (status == 1)
+		{
+			alert("A movie session is already spanning over this area");
+			return;
+		}
+		
+		/* Displaying of the new session on the screen */
+
 		// We update the top and height style values of the session mark/model
 		var sessionModel = document.getElementById("movie-session-model");
 
 		// We update its content
-		fillSessionDivContent(sessionModel, beginHourStr, endHourStr, beginMinStr, endMinStr);
+		fillSessionDivContent(sessionModel, formatHour(beginHour), formatHour(endHour), formatHour(beginMin), formatHour(endMin));
 
 		var sessionBeginTd = setSessionHeightAndTop(sessionModel, table, column,
 						tableFirstHour, tableLastHour, beginHour, endHour, beginMin, endMin);
@@ -450,6 +490,17 @@
 			return true;
 		else
 			return false;
+	}
+
+	function getSelectValue(selectId)
+	{
+		var selectElem = document.getElementById(selectId);
+		return selectElem.options[selectElem.selectedIndex].value;
+	}
+
+	function toTimeFormat(hour, mins, sec)
+	{
+		return formatHour(hour) + ":" + formatHour(mins) + ":" + formatHour(sec);
 	}
 
 /*********** Implantation of a Movie Session div/mark ************/

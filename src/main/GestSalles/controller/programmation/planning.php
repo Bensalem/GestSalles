@@ -19,7 +19,7 @@
 	$cinemas = get_cinemas();
 	foreach($cinemas as $key => $cine)
 	{
-		$cinemas[$key]['nom'] = htmlspecialchars($cine['nom']);
+		$cinemas[$key]['nom_cinema'] = htmlspecialchars($cine['nom_cinema']);
 	}
 ?>
 
@@ -33,7 +33,7 @@
 					<?php
 						foreach($cinemas as $cine)
 						{
-							echo "<option value='".$cine['nom']."'>".$cine['nom']."</option><br />";
+							echo "<option value='".$cine['nom_cinema']."'>".$cine['nom_cinema']."</option><br />";
 						}
 					?>
 				</select>
@@ -150,7 +150,7 @@
 			<br /><br />
 
 			<label for="room">Salle :</label>
-			<select name="roomSelecter" disabled="disabled" style="width: 200px;">
+			<select id="room-selecter" name="roomSelecter" disabled="disabled" style="width: 200px;">
 				<!-- there must be only one option -->
 				<option></option>
 			</select>
