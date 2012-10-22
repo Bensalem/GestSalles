@@ -43,13 +43,13 @@
 					<?php
 						for ($i = 0; $i < 5; $i++)
 						{
-							$timestamp = strtotime('next '.$days[$i]);
+							$timestamp = strtotime($days[$i].' next week');
 							$dateSlash = getDateSlash($timestamp);
   							echo "<option value=\"$timestamp\">$dateSlash</option>";
 						}
 						for ($i = 5; $i < 7; $i++)
 						{
-							$timestamp = strtotime('next '.$days[$i].' +1 week');
+							$timestamp = strtotime($days[$i].' next week');
 							$dateSlash = getDateSlash($timestamp);
   							echo "<option value=\"$timestamp\">$dateSlash</option>";
 						}
@@ -106,12 +106,19 @@
 		$nb_tables = (int) ($nb_rooms / $nb_rooms_per_table);
 		$nb_rooms_last_table = $nb_rooms % $nb_rooms_per_table;
 
-		$start_val_index = grid($nb_rooms_per_table, 0, $rooms, 0, $dateStr);
-		for ($table = 1; $table < $nb_tables; $table++)
+		if ($nb_tables > 0)
 		{
-			$start_val_index = grid($nb_rooms_per_table, 0, $rooms, $start_val_index, "");
+			$start_val_index = grid($nb_rooms_per_table, 0, $rooms, 0, $dateStr);
+			for ($table = 1; $table < $nb_tables; $table++)
+			{
+				$start_val_index = grid($nb_rooms_per_table, 0, $rooms, $start_val_index, "");
+			}
+			grid($nb_rooms_last_table, ($nb_rooms_per_table - $nb_rooms_last_table), $rooms, $start_val_index, "");
 		}
-		grid($nb_rooms_last_table, ($nb_rooms_per_table - $nb_rooms_last_table), $rooms, $start_val_index, "");
+		else
+		{
+			grid($nb_rooms_last_table, ($nb_rooms_per_table - $nb_rooms_last_table), $rooms, 0, $dateStr);
+		}
 
 		echo '</div>'
 	// the if does not end here
