@@ -135,12 +135,13 @@
 	<div id="movie-session-form-div" name="movieSessionFormDiv">
 		<form method="post" action="submitForm()" name="movieSessionForm" id="movie-session-form">
 
-			<p style="font-size: 13px; font-style: italic; margin-top: 2px; padding-left: 36px;">Ajouter une séance</p>
+			<p style="font-size: 13px; font-style: italic; margin-top: 2px; padding-left: 41px;">
+				<span id="session-form-title">Ajouter une séance</span>
+				<input style="margin-left: 17px;" type="button" id="remove-button" name="removeButton" value="Supprimer" onclick="" />
+			</p>
 			<p style="margin-top: 0px;"><b>Date :</b> <span id="sessionFormDate" style="font-size: 14px;"><?php echo $dateStr ?></span></p>
 
 			<p><b>Horaire :</b>
-
-
 				<input name="beginHour" id="begin-hour" value="18" type="text" class="time-slot"> :
 				<input name="beginMin" id="begin-min" value="00" type="text" size="2" class="time-slot" /> –
 				<input name="endHour" id="end-hour" value="19" type="text" class="time-slot"> :
@@ -166,7 +167,7 @@
 			<div style="text-align: center;">
 				<input type="button" name="saveButton" value="Enregistrer" onclick="sessionFormSubmit()" />
 				<input type="button" name="resetButton" value="Effacer" onclick="sessionFormReset()"/>
-				<input type="button" value="Annuler" onclick="sessionFormAbort()"/>
+				<input type="button" name="abortButton" value="Annuler" onclick="sessionFormAbort()"/><br/>
 			</div>
 		</form>
 	</div>

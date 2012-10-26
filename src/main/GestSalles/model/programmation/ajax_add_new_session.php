@@ -30,8 +30,6 @@
 	$overlapping_sessions_nb = $req->fetch();
 	$overlapping_sessions_nb = $overlapping_sessions_nb['OverlappingSessionsNb'];
 
-	//echo $overlapping_sessions_nb;
-
 	if ($overlapping_sessions_nb != 0)
 	{
 		echo ERROR_OVERLAPPING;

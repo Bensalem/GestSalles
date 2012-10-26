@@ -1,9 +1,10 @@
 	cinemaSelected = daySelected = false;
 	maxNbRoomsPerTable = 7;
 	maxTimeAtomsSpannedAtFirst = 4;
+
 	formIsDisplayed = false;
 	aSessionHasBeenImplanted = false;
-	sessionNum = 1;
+	sessionCounter = 1;
 	addSessionOperationStatus = 0;
 
 /*********** Cinema and day selecters functions ************/
@@ -160,11 +161,11 @@
 	 * firstHour and lastHour: first and last hour of the table; with
 	 *  them we compute the availableQuarters and the position on the screen
 	 *  corresponding to the beginning of the session (beginTimePos).
-	 * hour: the hour corresponding to the td
+	 * beginHour: the hour corresponding to the td
 	 * hourQuarter: the quarter of hour the td corresponds to.
 	 * availableQuarters: number of rows a session can span over from tdObj
 	 */
-	function proposeSession(tdObj, column, table, tableFirstHour, tableLastHour, hour, hourQuarter, availableQuarters)
+	function proposeSession(tdObj, column, table, tableFirstHour, tableLastHour, beginHour, hourQuarter, availableQuarters)
 	{
 		if (availableQuarters <= 0 // to avoid overlapping of session DIVs
 			|| formIsDisplayed == true) 
@@ -179,27 +180,27 @@
 				beginMin = 15;
 				/* Il n'y a pas de séance ensuite mais il faut quand même
 					limiter l'espace car il n'y a pas d'heure après */
-				if ((hour == tableLastHour) && availableQuarters > 3)
+				if ((beginHour == tableLastHour) && availableQuarters > 3)
 					availableQuarters = 3;
 				break;
 			case 3:
 				beginMin = 30;
-				if ((hour == tableLastHour) && availableQuarters > 2)
+				if ((beginHour == tableLastHour) && availableQuarters > 2)
 					availableQuarters = 2;
 				break;
 			case 4:
 				beginMin = 45;
-				if ((hour == tableLastHour) && availableQuarters > 1)
+				if ((beginHour == tableLastHour) && availableQuarters > 1)
 					availableQuarters = 1;
 				break;
 			default:
 				beginMin = 0;
 		}
 		var nbQuartersSpanned = availableQuarters;
-		var endHour = getEndHour(hour, beginMin, nbQuartersSpanned);
+		var endHour = getEndHour(beginHour, beginMin, nbQuartersSpanned);
 		var endMin = getEndMin(beginMin, nbQuartersSpanned);
 
-		setSessionPosAndDimensions(sessionModel, table, column, tableFirstHour, hour, endHour, beginMin, endMin);
+		setSessionPosAndDimensions(sessionModel, table, column, tableFirstHour, beginHour, endHour, beginMin, endMin);
 
 		/* We put an id to the td which corresponds to the beginning of the
 			session so we can later get this td when we want to implant,
@@ -207,10 +208,14 @@
 		var sessionBeginTdId = nextSessionBeginTdId();
 		tdObj.setAttribute('id', sessionBeginTdId);
 
-		fillSessionDivContent(sessionModel, hour, endHour, formatHour(beginMin), formatHour(endMin));
+		fillSessionDivContent(sessionModel, beginHour, endHour, formatHour(beginMin), formatHour(endMin));
 
-		sessionModel.setAttribute('ondblclick', 'displayMovieSessionForm("'+ sessionBeginTdId +'",'+ nbQuartersSpanned +','
-							+ table +','+ column +','+tableFirstHour+','+tableLastHour+','+hour+','+beginMin+','+endHour+','+endMin+')');
+		// false as last arg means this is the "add" form which will be displayed
+		// when clicking this session mark, not the "modify or remove" form.
+		sessionModel.setAttribute('ondblclick', 'displayMovieSessionForm("'+ sessionBeginTdId +'",'
+							+ table +','+ column +','+tableFirstHour+','+tableLastHour+','+beginHour+','
+							+beginMin+','+endHour+','+endMin+', false, null, null, null)');
+		// usefull only the first time proposeSession is called
 		sessionModel.style.visibility = "visible";
 	}
 
@@ -232,7 +237,7 @@
 
 		var modelCell = getColumnFirstCell(table, column + 1);
 		var modelCellPos = findPos(modelCell);
-		var paddingRight = 15, paddingHeight = 2;
+		var paddingRight = 15, paddingHeight = 3;
 		var sessionWidth = modelCell.offsetWidth - paddingRight;
 		var sessionHeight = computeHeight(beginHour, endHour, beginMin, endMin) - paddingHeight;
 
@@ -245,19 +250,36 @@
 
 	function getBeginTimePos(table, tableFirstHour, beginHour, beginMin)
 	{
-		var fiveMinsInPixels = 6;
-		var hourHeight = fiveMinsInPixels * 12;
-		var beginMinInPixels = (beginMin / 5) * fiveMinsInPixels;
+		var oneHourInPixels = getOneHourPixels();
+		var fiveMinsInPixels = getFiveMinsPixels();
 
+		//alert(fiveMinsInPixels);
+		var beginMinInPixels = (beginMin / 5) * fiveMinsInPixels;
 		var intertableSpace = document.getElementById("first-cell").offsetHeight + 28;
-		return (beginHour - tableFirstHour) * hourHeight + beginMinInPixels;
+		return (beginHour - tableFirstHour) * oneHourInPixels + beginMinInPixels;
 	}
 
 	function computeHeight(beginHour, endHour, beginMin, endMin)
 	{
-		var fiveMinsInPixels = 6;
-		var totalMins = (endHour - (beginHour + 1)) * 60 + (60 - beginMin) + endMin;
-		return (totalMins / 5) * 6;
+		var oneHourInPixels = getOneHourPixels();
+		var fiveMinsInPixels = getFiveMinsPixels();
+		var totalMins = (endHour - (beginHour + 1)) * oneHourInPixels + (oneHourInPixels - beginMin) + endMin;
+		return (totalMins / 5) * fiveMinsInPixels;
+	}
+	
+	function getFiveMinsPixels()
+	{
+		return getFifteenMinsPixels() / 3;
+	}
+	
+	function getFifteenMinsPixels()
+	{
+		return getColumnFirstCell(1,2).offsetHeight;
+	}
+	
+	function getOneHourPixels()
+	{
+		return getColumnFirstCell(1,1).offsetHeight;
 	}
 
 	function fillSessionDivContent(movieSession, beginHour, endHour, beginMin, endMin)
@@ -287,16 +309,16 @@
 		if (aSessionHasBeenImplanted)
 		{
 			aSessionHasBeenImplanted = false;
-			sessionNum++;
+			sessionCounter++;
 		}
 		else
 		{
 			// We want to keep the same id as before
-			oldProposedTd = document.getElementById("td" + sessionNum);
+			oldProposedTd = document.getElementById("td" + sessionCounter);
 			if (oldProposedTd)
 				oldProposedTd.setAttribute('id', '');
 		}
-		return "td" + sessionNum;
+		return "td" + sessionCounter;
 	}
 
 	function highlight(obj)
@@ -311,22 +333,69 @@
 
 /*********** Movie Session Form functions ************/
 
-	function displayMovieSessionForm(sessionBeginTdId, tdSpan, table, column, tableFirstHour, tableLastHour, beginHour, beginMin, endHour, endMin)
+	function displayMovieSessionForm(beginTdId, table, column, tableFirstHour,
+					tableLastHour, beginHour, beginMin,	endHour, endMin, isRemovable,
+					sessionId, nbQuartersSpanned, movie)
 	{
+		// No other session mark or form will be displayed if we
+		// click elsewhere on the grid
 		formIsDisplayed = true;
+
 		var sessionFormDiv = document.getElementById("movie-session-form-div");
 		var sessionModel = document.getElementById("movie-session-model");
 
 		sessionFormDiv.style.display = "block"; // We make the form visible
 		sessionFormDiv.style.top = (sessionModel.offsetTop - 25) + "px";
+		alert(isRemovable);
 
 		var room = getColumnRoom(table, column);
 		fillRoomSelecter(room);
 		fillMovieSelecter();
 		setTimeSlot(formatHour(beginHour), formatHour(endHour), formatHour(beginMin), formatHour(endMin));
 
-		document.movieSessionForm.saveButton.setAttribute('onclick', 'sessionFormSubmit('+sessionBeginTdId+','+tdSpan+','+table+','+column+','+tableFirstHour+','+tableLastHour+')');
-		document.movieSessionForm.resetButton.setAttribute('onclick', 'sessionFormReset('+beginHour+','+endHour+','+beginMin+','+endMin+')');
+		if (isRemovable == true)
+		{
+			setModOrRemFormButtonsAttributes(beginTdId, table, column, tableFirstHour,
+						tableLastHour, beginHour, beginMin,	endHour, endMin, sessionId,
+						nbQuartersSpanned, movie);
+		}
+		else
+		{
+			setAddFormButtonsAttributes(beginTdId, table, column, tableFirstHour,
+						tableLastHour, beginHour, beginMin,	endHour, endMin);
+		}
+	}
+	
+	function setAddFormButtonsAttributes(beginTdId, table, column, tableFirstHour,
+					tableLastHour, beginHour, beginMin,	endHour, endMin)
+	{
+		document.movieSessionForm.saveButton.setAttribute('onclick', 'sessionFormSubmit("'+beginTdId+'",'
+					+table+','+column+','+tableFirstHour+','+tableLastHour+')');
+		document.movieSessionForm.resetButton.setAttribute('onclick', 'sessionFormReset('+beginHour+','
+					+endHour+','+beginMin+','+endMin+')');
+		document.movieSessionForm.abortButton.setAttribute('onclick', 'sessionFormAbort()');
+	}
+
+	/* 
+	 * Modify the session form to add a Remove button to it and so that
+	 * clicking the Save button updates the session. 
+	 */
+	function setModOrRemFormButtonsAttributes(beginTdId, table, column, tableFirstHour,
+					tableLastHour, beginHour, beginMin,	endHour, endMin, sessionId,
+					nbQuartersSpanned, movie)
+	{
+		changeText('session-form-title', "Modifier la séance");
+
+		document.movieSessionForm.removeButton.setAttribute('onclick', 'removeSession("'+sessionId+'","'
+					+beginTdId+'",'+nbQuartersSpanned+','+table+','+column+','+tableFirstHour+','
+					+tableLastHour+',"'+movie+'",'+beginHour+','+beginMin+','+endHour+','+endMin+')');
+
+		document.movieSessionForm.removeButton.style.visibility = "visible";
+
+		document.movieSessionForm.saveButton.setAttribute('onclick', 'updateSession("'+sessionId
+					+'","'+beginTdId+'",'+table+','+column+','+tableFirstHour+','+tableLastHour+')');
+
+		document.movieSessionForm.abortButton.setAttribute('onclick', 'closeSessionModOrRemForm()');
 	}
 
 	function sessionFormReset(beginHour, endHour, beginMin, endMin)
@@ -397,8 +466,6 @@
 
 	function addNewMovieSession(cinema, date, movie, room, beginTime, endTime)
 	{
-		var selecter = document.getElementById('movie-selecter');
-
 		var ajaxReq = getXMLHttpRequest();
 
 		var urlBase = "../../model/programmation/ajax_add_new_session.php?";
@@ -406,7 +473,25 @@
 						+ "&room="+ room +"&begin="+ beginTime +"&end="+ endTime;
 
 		// "false" i.e. synchronous because we don't want to continue executing
-		// sessionFormSubmit()'s code if the session wasn't added in the db.
+		// sessionFormSubmit()'s code if the session wasn't added in the db
+		ajaxReq.open("GET", url, false);
+		ajaxReq.send(null);
+
+		if (ajaxReq.readyState == 4 /*&& ajaxReq.status == 200*/)
+		{
+			return ajaxReq.responseText;
+		}
+	}
+
+	function removeMovieSessionFromDB(cinema, date, room, beginTime)
+	{
+		var ajaxReq = getXMLHttpRequest();
+
+		var urlBase = "../../model/programmation/ajax_remove_session.php?";
+		var url = urlBase +"cinema="+ cinema +"&date="+ date + "&room="+ room +"&begin="+ beginTime;
+
+		// Synchronous because we don't want to continue executing
+		// removeSession()'s code if the session wasn't removed from the db
 		ajaxReq.open("GET", url, false);
 		ajaxReq.send(null);
 
@@ -425,8 +510,8 @@
 	 * and decrement the number of copies of this movie available in the
 	 * communal stock.
 	 */
-	function sessionFormSubmit(sessionBeginTd, tdSpan, table, column, tableFirstHour, tableLastHour) // sessionBeginTd: pas besoin
-	{
+	function sessionFormSubmit(beginTdId, table, column, tableFirstHour, tableLastHour) // beginTdId: pas besoin
+	{//alert(tdId+" "+beginTdId+" "+tdSpan+" "+table+" "+column+" "+tableFirstHour+" "+tableLastHour);
 		hideSessionForm();
 
 		var beginHour = parseInt(document.movieSessionForm.beginHour.value, 10);
@@ -440,9 +525,8 @@
 			return;
 		}
 
-		/* if(..funct si count = 0 return true) Here we must check in the db that there's no overlapping */
-
 		/* We add the new session in the DB */
+
 		var cinema = document.getElementById('cinema').value;
 		var date = document.getElementById('date').value;
 		var movie = getSelectValue('movie-selecter');
@@ -460,26 +544,215 @@
 		
 		/* Displaying of the new session on the screen */
 
-		// We update the top and height style values of the session mark/model
 		var sessionModel = document.getElementById("movie-session-model");
 
-		// We update its content
-		fillSessionDivContent(sessionModel, formatHour(beginHour), formatHour(endHour), formatHour(beginMin), formatHour(endMin));
+		// We update the content of the session mark/model
+		fillSessionDivContent(sessionModel, formatHour(beginHour),
+				formatHour(endHour), formatHour(beginMin), formatHour(endMin));
 
+		// We update its top and height style values
 		var sessionBeginTd = setSessionHeightAndTop(sessionModel, table, column,
-						tableFirstHour, tableLastHour, beginHour, endHour, beginMin, endMin);
+				tableFirstHour, tableLastHour, beginHour, endHour, beginMin, endMin);
 
 		var nbQuartersSpanned = Math.ceil(((endHour - (beginHour + 1)) * 60 + (60 - beginMin)) / 15)
 								+ Math.ceil(endMin / 15);
 
 		// We implant a clone of the session mark/model on the grid
-		movieSession = implantSession(sessionBeginTd, nbQuartersSpanned, column);
+		var movieSession = implantSession(sessionBeginTd, nbQuartersSpanned, column);
+		movieSession.setAttribute('id', 'session'+beginTdId);
+		var sessionId = movieSession.getAttribute('id');
 
-		/* Ici la semaine, la date et l'heure; l'id du film, le cinéma, la salle
-		doivent être mis en db; et décrémenter en db le nb de copies de
-		ce film */
+		// true as last arg means clicking this session mark will display the
+		// "modify or remove" form, not the simple "add" form.
+		movieSession.setAttribute('onclick', 'displayMovieSessionForm("'+beginTdId+'",'
+						+table+','+column+','+tableFirstHour+','+tableLastHour+','
+						+beginHour+','+beginMin+','+endHour+','+endMin+', true,"'
+						+sessionId+'",'+nbQuartersSpanned+',"'+movie+'")');
+	}
+
+	/*
+	 * Removes the movie session from the DB, removes it on the screen
+	 * and update the availability of the area.
+	 */
+	function removeSession(sessionId, beginTdId, nbQuartersSpanned, table, column,
+						tableFirstHour, tableLastHour, movie, beginHour,
+						beginMin, endHour, endMin)
+	{
+		// if (! alert machin ok ou non) return;
+		closeSessionModOrRemForm();
+
+		/* We remove the session from the DB */
+		var cinema = document.getElementById('cinema').value;
+		var date = document.getElementById('date').value;
+		var room = getSelectValue('room-selecter');
+
+		var beginTime = toTimeFormat(beginHour, beginMin, 0);
+
+		removeMovieSessionFromDB(cinema, date, room, beginTime);
+
+		/* We update the grid on the screen and its available time slots */
+		updateAvailableQuarters(beginTdId, nbQuartersSpanned, table, column);
+		sessionDiv = document.getElementById(sessionId);
+		sessionDiv.parentNode.removeChild(sessionDiv);
+
+		formIsDisplayed = false;
+	}
+
+	/*
+	 * Update the number of available quarters (i.e. <td>s) from the
+	 * concerned TDs when a movie session is removed from the grid :
+	 * First, sets this number to 4 for the 3 TDs from the session
+	 * beginning TD to the top of the table (i.e. the TDs that precede
+	 * the removed session in time), it stops at 3 TDs (because only 3
+	 * TDs are given 1, 2, 3 when we implanted the session, as at the 4th
+	 * TD towards the top we can very well implant a session spanning over
+	 * quarters/TDs) or when a TD which has 0 is encountered (meaning this
+	 * TD belongs to the session that directly comes before the one we want
+	 * to remove).
+	 * Then, sets all the TDs of the removed session to 4, even those wich
+	 * were not entirely covered by the session (e.g. if it started at 09:12
+	 * or ended at 11:05). 4 means that all these time slots are now free.
+	 * This has not to be the case, for there may be a session soon after
+	 * the one we removed, so the function then sets/re-sets to 1, 2, 3 the
+	 * number associated respectively to the 3 TDs from the TD of that session
+	 *(which is found by looking for the first TD which has 0 after the session
+	 * we removed). There's no problem with the TD that are not entirely
+	 * spanned because there is no diffrence between them and the others :
+	 * we give them all '0'; that means that when we click on the grid close to
+	 * a session, the marker proposing a slot for a new session will stop at the
+	 * quarter and not inside the quarter (it has to be set manually with the form).
+	 */
+	function updateAvailableQuarters(beginTdId, nbQuartersSpanned, table, column)
+	{
+		var td = document.getElementById(beginTdId);
+		var realColumn;
+
+		for (var i=1; i < maxTimeAtomsSpannedAtFirst; i++)
+		{
+			var tr = td.parentNode;
+			tr = getPreviousSibling(tr);
+			if (!tr) // We reached the top of the table
+				break;
+			realColumn = getRealColumn(tr, column);
+			td = getNthChild(tr, realColumn);
+
+			if (getOnclickAvailableQuarters(td) == 0)
+				break;
+			setOnclickAvailableQuarters(td, 4);
+		}
+
+		td = document.getElementById(beginTdId);
+		setOnclickAvailableQuarters(td, 4);
+		for (var i=1; i < nbQuartersSpanned; i++)
+		{
+			var tr = td.parentNode;
+			tr = getNextSibling(tr); // does exist
+			realColumn = getRealColumn(tr, column);
+			td = getNthChild(tr, realColumn);
+
+			setOnclickAvailableQuarters(td, 4);
+		}
+
+		var tr = td.parentNode;
+		tr = getNextSibling(tr);
+		if (!tr) // We reached the end of the table
+			return;
+		realColumn = getRealColumn(tr, column);
+		td = getNthChild(tr, realColumn);
+
+		var availFirstNext = getOnclickAvailableQuarters(td);
+		if (availFirstNext != 4)
+		{
+			nbAvailQuarters = availFirstNext + 1;
+			for (var i=0; i < (3 - availFirstNext); i++)
+			{
+				var tr = td.parentNode;
+				tr = getPreviousSibling(tr);
+				if (!tr) // We reached the end of the table
+					return;
+				realColumn = getRealColumn(tr, column);
+				td = getNthChild(tr, realColumn);
+
+				setOnclickAvailableQuarters(td, nbAvailQuarters);
+				nbAvailQuarters++;
+			}
+		}
+	}
+
+	function getOnclickAvailableQuarters(td)
+	{
+		var onclickValue = td.getAttribute('onclick');
+		var len = onclickValue.length;
+		availableQuarters = parseInt(onclickValue.substring(len-2, len), 10);
+		return availableQuarters;
+	}
+
+	function changeText(id, text)
+	{
+		var elem = document.getElementById(id);
+		while (elem.firstChild) {
+			elem.removeChild(elem.firstChild);
+		}
+		elem.appendChild(document.createTextNode(text));
+	}
+
+	function closeSessionModOrRemForm(session, sessionBeginTdId, tdSpan,
+					table, column, tableFirstHour, tableLastHour)
+	{
+		hideSessionForm();
+		changeText('session-form-title', "Ajouter une séance");
+		document.movieSessionForm.removeButton.style.visibility = "hidden";
+	}
+
+	function sessionUpdateFormSubmit(session, sessionBeginTdId, tdSpan, table, column, tableFirstHour, tableLastHour, beginHour, beginMin, endHour, endMin)
+	{
+		closeSessionModOrRemForm();
+
+		var beginHour = parseInt(document.movieSessionForm.beginHour.value, 10);
+		var endHour = parseInt(document.movieSessionForm.endHour.value, 10);
+		var beginMin = parseInt(document.movieSessionForm.beginMin.value, 10);
+		var endMin = parseInt(document.movieSessionForm.endMin.value, 10);
+
+		if (! checkhInterval(beginHour, endHour, beginMin, endMin, tableFirstHour, tableLastHour+1))
+		{
+			alert("L'horaire n'est pas valide");
+			return;
+		}
+
+		// We update the session in the DB
+
+		var cinema = document.getElementById('cinema').value;
+		var date = document.getElementById('date').value;
+		var movie = getSelectValue('movie-selecter');
+		var room = getSelectValue('room-selecter');
+
+		var beginTime = toTimeFormat(beginHour, beginMin, 0);
+		var endTime = toTimeFormat(endHour, endMin, 0);
+
+		var status = updateMovieSession(cinema, date, movie, room, beginTime, endTime);
+		if (status == 1)
+		{
+			alert("A movie session is already spanning over this area");
+			return;
+		}
+
+		// Redisplaying of the session on the screen
+
+		// We update the content of the session
+		fillSessionDivContent(session, formatHour(beginHour), formatHour(endHour), formatHour(beginMin), formatHour(endMin));
+
+		// We update its top and height style values
+		var sessionBeginTd = setSessionHeightAndTop(session, table, column,
+						tableFirstHour, tableLastHour, beginHour, endHour, beginMin, endMin);
+
+		var nbQuartersSpanned = Math.ceil(((endHour - (beginHour + 1)) * 60 + (60 - beginMin)) / 15)
+								+ Math.ceil(endMin / 15);
+
+		// We update the availabity of the areas quarters
+		//var movieSession = implantSession(sessionBeginTd, nbQuartersSpanned, column);
 
 	}
+
 
 	function checkhInterval(beginHour, endHour, beginMin, endMin, tableFirstHour, tableLastHour)
 	{
@@ -519,7 +792,7 @@
 		div.appendChild(newSession);
 		aSessionHasBeenImplanted = true;
 
-		newSession.setAttribute('id', 'session' + sessionNum);
+		newSession.setAttribute('id', 'session' + sessionCounter);
 		/*newSession.setAttribute('onclick', ''); 						popup*/
 
 
@@ -532,7 +805,6 @@
 	{
 		var newSessionDiv = document.createElement("DIV");
 		newSessionDiv.className = model.className;
-		/* à rajouter onmousedlbclk: appeler formulaire de modif (ou dans implantSession) et quand modif terminée, déshilighter */
 		newSessionDiv.setAttribute('onmouseover', 'highlight(this)');
 		newSessionDiv.setAttribute('onmouseout', 'unHighlight(this)');
 		newSessionDiv.innerHTML = model.innerHTML;
