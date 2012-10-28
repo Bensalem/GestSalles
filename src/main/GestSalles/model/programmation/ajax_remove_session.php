@@ -2,11 +2,9 @@
 	include('../db_connexion.php');
 
 	$cinema = $_GET['cinema'];
-	$date_timestamp = $_GET['date'];
+	$date = $_GET['date'];
 	$room = $_GET['room'];
 	$beginTime = $_GET['begin'];
-
-	$date = date("Y-m-d", $date_timestamp);
 
 	$req = $db->prepare('DELETE FROM projections WHERE date = :date AND heure_debut = :debut
 		AND EXISTS (SELECT cinemas.nom_cinema FROM cinemas WHERE cinemas.id_cinema = projections.id_cinema

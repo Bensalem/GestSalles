@@ -149,7 +149,7 @@
 			</p>
 
 			<input type="hidden" id="cinema" value="<?php echo $cinema ?>">
-			<input type="hidden" id="date" value="<?php echo $day_timestamp ?>">
+			<input type="hidden" id="date" value="<?php echo date("Y-m-d", $day_timestamp) ?>">
 
 			<label for="movieSelecter">Film :</label>
 			<select id="movie-selecter" name="movieSelecter" style="width: 200px; margin-left: 5px;">
