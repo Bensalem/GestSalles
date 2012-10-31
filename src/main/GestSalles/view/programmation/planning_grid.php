@@ -8,7 +8,7 @@ function grid($nb_columns, $greyed_out_cols, $column_values, $start_val_idx, $ca
 	$table_cpt++;
 ?>
 <table>
-	<caption><?php echo $caption ?></caption>
+	<caption><?php echo ucfirst($caption) ?></caption>
 	<thead id="<?php echo 'thead'.$table_cpt ?>">
 		<tr>
 			<th id="first-cell"></th>
