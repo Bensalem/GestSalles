@@ -7,6 +7,9 @@ var formIsDisplayed = false;
 var aSessionHasBeenImplanted = false;
 var sessionCounter = 1;
 
+window.onload = /*function () {
+	if () */displayAlreadyDefinedSessions;
+
 /*********** Cinema and day selecters functions ************/
 
 function cinemaSelectHalfSubmit() {
@@ -152,10 +155,35 @@ function getFiveMinsPixels() {
 	return getFifteenMinsPixels() / 3;
 }
 
-function fillSessionDivContent(movieSession, beginHour, endHour, beginMin, endMin) {
+function fillSessionDivContent(movieSession, beginHour, endHour,
+			beginMin, endMin, movie) {
 	var beginTime = beginHour + ":" + beginMin;
 	var endTime = endHour + ":" + endMin;
-	movieSession.innerHTML = "<span style=\"font-size: 10px; font-weight: bold;\">" + beginTime + " – " + endTime + "</span>";
+
+	var content = "<span style=\"font-size: 10px; font-weight: bold;\">"
+			+ beginTime + " – " + endTime + "</span>";
+
+	if (movie !== null) {
+		// We limit the number of characters of the title displayed
+		var charWidth = 7, lineHeight = 20;
+		var nbCharsByLine = movieSession.offsetWidth / charWidth;
+		var nbMovieTitleLines = movieSession.offsetHeight / lineHeight - 2;
+		var maxNbChars = nbCharsByLine * nbMovieTitleLines;
+		var i, offset;
+
+		if (movie.length > maxNbChars) {
+			movie = movie.substring(0, maxNbChars - 3);
+			movie += "...";
+		}
+
+		content += "<span style=\"font-size: 12px;\">";
+		for (i = 0, offset = 0; i < nbMovieTitleLines; i++, offset += nbCharsByLine) {
+			content += ("<br />" + movie.substring(offset, offset + nbCharsByLine));
+		}
+		content += "</span>";
+	}
+
+	movieSession.innerHTML = content;
 }
 
 function getEndHour(beginHour, beginMin, nbQuartersSpanned) {
@@ -283,7 +311,8 @@ function proposeSession(tdObj, column, table, tableFirstHour, tableLastHour, beg
 	var sessionBeginTdId = nextSessionBeginTdId();
 	tdObj.setAttribute('id', sessionBeginTdId);
 
-	fillSessionDivContent(sessionModel, beginHour, endHour, formatHour(beginMin), formatHour(endMin));
+	fillSessionDivContent(sessionModel, beginHour, endHour,
+			formatHour(beginMin), formatHour(endMin), null);
 
 	// false as last arg means this is the "add" form which will be displayed
 	// when clicking this session mark, not the "modify or remove" form.
@@ -327,19 +356,22 @@ function implantSession(sessionBeginTd, nbQuartersSpanned, column) {
 	var model = document.getElementById("movie-session-model");
 	var newSession = cloneSessionDiv(model);
 	div.appendChild(newSession);
-	// the session counter will be incremented
-	aSessionHasBeenImplanted = true;
-
-	//newSession.setAttribute('id', 'session' + sessionCounter);
+	aSessionHasBeenImplanted = true; // the session counter will be incremented
 
 	// Avoids overlapping of session divs
 	restrictAreaTimeAvailability(sessionBeginTd, nbQuartersSpanned, column);
 	return newSession;
 }
 
-function getBeginSessionTd(table, col, beginQuarterNum) {
+function getBeginSessionTd(table, column, tableFirstHour, beginHour, beginMin) {
+	var beginMinFromFirstHour = (beginHour * 60) + beginMin - (tableFirstHour * 60);
+	// If the session doesn't start exactly at a quarter, we consider the quarter
+	// (<=> td element) during which it starts as the td element of [start of] the
+	// session - that's why we use ceil - so that we can make unavailable the TDs
+	// from there and not from the one which precedes.
+	var beginQuarterNum = Math.floor(beginMinFromFirstHour / 15);
 	var tr = document.getElementById("t" + table + "-tr" + beginQuarterNum);
-	var column = getRealColumn(tr, col);
+	column = getRealColumn(tr, column);
 	return getNthChild(tr, column);
 }
 
@@ -352,15 +384,6 @@ function setSessionHeightAndTop(movieSession, table, column, tableFirstHour, beg
 
 	movieSession.style.top = (modelCellPos[0] + beginTimePos) + 'px';
 	movieSession.style.height = sessionHeight + 'px';
-
-	var beginMinFromFirstHour = (beginHour * 60) + beginMin - (tableFirstHour * 60);
-	// If the session doesn't start exactly at a quarter, we consider the quarter
-	// (<=> td element) during which it starts as the td element of [start of] the
-	// session - that's why we use ceil - so that we can make unavailable the TDs
-	// from there and not from the one which precedes.
-	var beginQuarterNum = Math.floor(beginMinFromFirstHour / 15);
-	var beginSessionTd = getBeginSessionTd(table, column, beginQuarterNum);
-	return beginSessionTd;
 }
 
 /*********** Movie Session Form functions ************/
@@ -476,7 +499,7 @@ function setAddFormButtonsAttributes(beginTdId, table, column, tableFirstHour,
  */
 function setModOrRemFormButtonsAttributes(beginTdId, table, column, tableFirstHour,
 				tableLastHour, beginHour, beginMin,	endHour, endMin, sessionId,
-				nbQuartersSpanned, movie) {
+				nbQuartersSpanned) {
 	changeText('session-form-title', "Modifier la séance");
 
 	document.movieSessionForm.removeButton.setAttribute('onclick', 'removeSession("' + sessionId + '","'
@@ -518,7 +541,7 @@ function displayMovieSessionForm(beginTdId, table, column, tableFirstHour,
 	if (isRemovable === true) {
 		setModOrRemFormButtonsAttributes(beginTdId, table, column, tableFirstHour,
 					tableLastHour, beginHour, beginMin,	endHour, endMin, sessionId,
-					nbQuartersSpanned, movie);
+					nbQuartersSpanned);
 	} else {
 		setAddFormButtonsAttributes(beginTdId, table, column, tableFirstHour,
 					tableLastHour, beginHour, beginMin,	endHour, endMin);
@@ -583,6 +606,20 @@ function updateMovieSessionInDB(cinema, date, room, prevBeginTime,
 	}
 }
 
+function getWeekSessionsFromDB(cinema, date) {
+	var ajaxReq = getXMLHttpRequest();
+
+	var urlBase = "../../model/programmation/ajax_get_week_sessions.php?";
+	var url = urlBase + "cinema=" + cinema + "&date=" + date;
+
+	ajaxReq.open("GET", url, false);
+	ajaxReq.send(null);
+
+	if (ajaxReq.readyState === 4) {/*&& ajaxReq.status === 200*/
+		return ajaxReq.responseText;
+	}
+}
+
 /*
  * Verify in the DB that the time slot is correct, i.e. whether there
  * is no overlapping with an already existing session.
@@ -627,21 +664,20 @@ function sessionFormSubmit(beginTdId, table, column, tableFirstHour, tableLastHo
 
 	var sessionModel = document.getElementById("movie-session-model");
 
-	// We update the content of the session mark/model
-	fillSessionDivContent(sessionModel, formatHour(beginHour),
-			formatHour(endHour), formatHour(beginMin), formatHour(endMin));
-
-	// We update its top and height style values
-	var sessionBeginTd = setSessionHeightAndTop(sessionModel, table, column,
-			tableFirstHour, beginHour, endHour, beginMin, endMin);
+	// We update the top and height style values of the session mark/model
+	setSessionHeightAndTop(sessionModel, table, column,	tableFirstHour, beginHour, endHour, beginMin, endMin);
+	var beginTd = getBeginSessionTd(table, column, tableFirstHour, beginHour, beginMin);
 
 	var nbQuartersSpanned = getNbQuartersSpanned(beginHour, endHour, beginMin, endMin);
 
+	// We update its content
+	fillSessionDivContent(sessionModel, formatHour(beginHour),
+			formatHour(endHour), formatHour(beginMin), formatHour(endMin), movie);
+
 	// We implant a clone of the session mark/model on the grid
-	var movieSession = implantSession(sessionBeginTd, nbQuartersSpanned, column);
-	movieSession.setAttribute('id', 'session' + beginTdId);
+	var movieSession = implantSession(beginTd, nbQuartersSpanned, column);
+	movieSession.setAttribute('id', 'session' + sessionCounter);
 	var sessionId = movieSession.getAttribute('id');
-	//newSession.setAttribute('id', 'session' + sessionCounter);								// ??
 
 	movieSession.setAttribute('onclick', 'displayMovieSessionForm("' + beginTdId + '",'
 					+ table + ',' + column + ',' + tableFirstHour + ',' + tableLastHour + ','
@@ -736,7 +772,9 @@ function remUpdateAvailableQuarters(beginTdId, nbQuartersSpanned, column) {
  */
 function removeSession(sessionId, beginTdId, nbQuartersSpanned, column,
 			beginHour, beginMin) {
-	// if (! alert machin ok ou non) return;
+	if (!confirm('Voulez-vous vraiment supprimer cette séance ?')) {
+		return;
+	}
 	closeSessionModOrRemForm();
 
 	/* We remove the session from the DB */
@@ -747,10 +785,11 @@ function removeSession(sessionId, beginTdId, nbQuartersSpanned, column,
 	var beginTime = toTimeFormat(beginHour, beginMin, 0);
 
 	removeMovieSessionFromDB(cinema, date, room, beginTime);
-//alert(beginTime +" "+ beginTdId +" "+ nbQuartersSpanned + " "+ column);
-	/* We update the grid on the screen and its available time slots */
-	remUpdateAvailableQuarters(beginTdId, nbQuartersSpanned, column);									//////////////////
-	//setAttribute('id', '');
+	// We update the grid on the screen and its available time slots
+	remUpdateAvailableQuarters(beginTdId, nbQuartersSpanned, column);
+	// We don't have to do beginTd.setAttribute('id', '') because
+	// the id given to future beginTd/session will be different from
+	// that of this beginTd/session we are removing
 	var sessionDiv = document.getElementById(sessionId);
 	sessionDiv.parentNode.removeChild(sessionDiv);
 }
@@ -800,11 +839,13 @@ function updateSession(sessionId, prevBeginTdId, nbQuartersSpanned, table, colum
 	// Redisplaying of the session on the screen
 
 	// We update the content of the session
-	fillSessionDivContent(movieSession, formatHour(beginHour), formatHour(endHour), formatHour(beginMin), formatHour(endMin));
+	fillSessionDivContent(movieSession, formatHour(beginHour),
+			formatHour(endHour), formatHour(beginMin), formatHour(endMin), movie);
 
 	// We update its top and height style values and get the new beginTd
-	var beginTd = setSessionHeightAndTop(movieSession, table, column,
-					tableFirstHour, beginHour, endHour, beginMin, endMin);
+	setSessionHeightAndTop(movieSession, table, column,
+			tableFirstHour, beginHour, endHour, beginMin, endMin);
+	var beginTd = getBeginSessionTd(table, column, tableFirstHour, beginHour, beginMin);
 
 	// We update the availabity of the areas' quarters
 	remUpdateAvailableQuarters(prevBeginTdId, nbQuartersSpanned, column);
@@ -823,4 +864,56 @@ function updateSession(sessionId, prevBeginTdId, nbQuartersSpanned, table, colum
 					+ table + ',' + column + ',' + tableFirstHour + ',' + tableLastHour + ','
 					+ beginHour + ',' + beginMin + ',' + endHour + ',' + endMin + ', true,"'
 					+ sessionId + '",' + nbQuartersSpanned + ',"' + movie + '")');
+}
+
+function displayAlreadyDefinedSessions() {
+	var cinema = document.getElementById('cinema').value;
+	var date = document.getElementById('date').value;
+
+	var sessionsJsonStr = getWeekSessionsFromDB(cinema, date);
+	//alert(sessionsJsonStr);
+	var sessions = eval ("(" + sessionsJsonStr + ")"); 
+
+	var sessionModel = document.getElementById("movie-session-model");
+
+	for (i in sessions) {
+		var beginHour = parseInt(sessions[i].beginHour, 10);
+		var endHour = parseInt(sessions[i].endHour, 10);
+		var beginMin = parseInt(sessions[i].beginMin, 10);
+		var endMin = parseInt(sessions[i].endMin, 10);
+		var room = sessions[i].roomName;
+		var roomNum = sessions[i].roomNum;
+		var movie = sessions[i].movie;
+		var table = Math.ceil(roomNum / 7);
+		var column = roomNum % 7;
+		if (column === 0) {
+			column = 7;
+		}
+
+	var tableFirstHour = 8, tableLastHour = 10;
+	//alert(beginHour+' '+endHour+' '+beginMin+' '+endMin+' '+room+' '+roomNum+' '+movie+' '+table+' '+column);
+	// We update the top and height style values of the session mark/model
+
+	setSessionPosAndDimensions(sessionModel, table, column, tableFirstHour, beginHour, endHour, beginMin, endMin);
+	var beginTd = getBeginSessionTd(table, column, tableFirstHour, beginHour, beginMin);
+
+	var nbQuartersSpanned = getNbQuartersSpanned(beginHour, endHour, beginMin, endMin);
+
+	// We update its content
+	fillSessionDivContent(sessionModel, formatHour(beginHour),
+			formatHour(endHour), formatHour(beginMin), formatHour(endMin), movie);
+
+	var beginTdId = nextSessionBeginTdId();
+	beginTd.setAttribute('id', beginTdId);
+
+	// We implant a clone of the session mark/model on the grid
+	var movieSession = implantSession(beginTd, nbQuartersSpanned, column);
+	movieSession.setAttribute('id', 'session' + sessionCounter);
+	var sessionId = movieSession.getAttribute('id');
+
+	movieSession.setAttribute('onclick', 'displayMovieSessionForm("' + beginTdId + '",'
+					+ table + ',' + column + ',' + tableFirstHour + ',' + tableLastHour + ','
+					+ beginHour + ',' + beginMin + ',' + endHour + ',' + endMin + ', true,"'
+					+ sessionId + '",' + nbQuartersSpanned + ',"' + movie + '")');
+	}
 }

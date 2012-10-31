@@ -11,7 +11,6 @@
 	<body>
 
 <?php
-
 	include('date.php');
 	include_once('../../model/db_connexion.php');
 	include_once('../../model/programmation/get_cinemas.php');
@@ -41,18 +40,26 @@
 				<select name="daySelect" id="day-select" onchange='daySelectHalfSubmit()'>
   					<option>Choisir le jour</option>
 					<?php
-						for ($i = 0; $i < 5; $i++)
-						{
-							$timestamp = strtotime($days[$i].' next week');
+						// If we are Sunday, specifying "next week" would lead us
+						// two weeks after for all the $days; but we still have to
+						// put a "next", only before "Sunday"
+						if (date('l') == $days[6]) {
+							$nextWeek = '';
+						} else {
+							$nextWeek = ' next week';
+						}
+						for ($i = 0; $i < 6; $i++) {
+							$timestamp = strtotime($days[$i] . $nextWeek);
 							$dateSlash = getDateSlash($timestamp);
   							echo "<option value=\"$timestamp\">$dateSlash</option>";
 						}
-						for ($i = 5; $i < 7; $i++)
-						{
-							$timestamp = strtotime($days[$i].' next week');
-							$dateSlash = getDateSlash($timestamp);
-  							echo "<option value=\"$timestamp\">$dateSlash</option>";
+						if (date('l') == $days[6]) { // If we are Sunday
+							$timestamp = strtotime('next Sunday');
+						} else {
+							$timestamp = strtotime('Sunday next week');
 						}
+						$dateSlash = getDateSlash($timestamp);
+						echo "<option value=\"$timestamp\">$dateSlash</option>";
 					?>
 				</select>
 			</form>
@@ -178,4 +185,3 @@
 
 	</body>
 </html>
-

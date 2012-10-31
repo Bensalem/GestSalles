@@ -16,7 +16,9 @@
 		INNER JOIN salles ON (projections.id_salle = salles.id_salle)
 		WHERE cinemas.nom_cinema = :cinema AND date = :date AND salles.nom_salle = :salle AND
 		((heure_debut BETWEEN :debut AND :fin) OR (heure_fin BETWEEN :debut AND :fin) OR
-		(:debut BETWEEN heure_debut AND heure_fin) OR (:fin BETWEEN heure_debut AND heure_fin))');
+		(:debut BETWEEN heure_debut AND heure_fin) OR (:fin BETWEEN heure_debut AND heure_fin))
+		AND NOT (heure_debut < :debut AND heure_fin = :debut)
+		AND NOT (heure_debut = :fin AND heure_fin > :fin)');
 
 	$req->bindValue(':cinema', $cinema, PDO::PARAM_STR);
 	$req->bindValue(':salle', $room, PDO::PARAM_STR);
@@ -54,4 +56,3 @@
 	$req->execute();
 	echo SUCCESS;
 ?>
-
