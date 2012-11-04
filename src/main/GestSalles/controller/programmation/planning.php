@@ -11,7 +11,6 @@
 	<body>
 
 <?php
-
 	include('date.php');
 	include_once('../../model/db_connexion.php');
 	include_once('../../model/programmation/get_cinemas.php');
@@ -41,18 +40,26 @@
 				<select name="daySelect" id="day-select" onchange='daySelectHalfSubmit()'>
   					<option>Choisir le jour</option>
 					<?php
-						for ($i = 0; $i < 5; $i++)
-						{
-							$timestamp = strtotime('next '.$days[$i]);
+						// If we are Sunday, specifying "next week" would lead us
+						// two weeks after for all the $days; but we still have to
+						// put a "next", only before "Sunday"
+						if (date('l') == $days[6]) {
+							$nextWeek = '';
+						} else {
+							$nextWeek = ' next week';
+						}
+						for ($i = 0; $i < 6; $i++) {
+							$timestamp = strtotime($days[$i] . $nextWeek);
 							$dateSlash = getDateSlash($timestamp);
   							echo "<option value=\"$timestamp\">$dateSlash</option>";
 						}
-						for ($i = 5; $i < 7; $i++)
-						{
-							$timestamp = strtotime('next '.$days[$i].' +1 week');
-							$dateSlash = getDateSlash($timestamp);
-  							echo "<option value=\"$timestamp\">$dateSlash</option>";
+						if (date('l') == $days[6]) { // If we are Sunday
+							$timestamp = strtotime('next Sunday');
+						} else {
+							$timestamp = strtotime('Sunday next week');
 						}
+						$dateSlash = getDateSlash($timestamp);
+						echo "<option value=\"$timestamp\">$dateSlash</option>";
 					?>
 				</select>
 			</form>
@@ -106,12 +113,19 @@
 		$nb_tables = (int) ($nb_rooms / $nb_rooms_per_table);
 		$nb_rooms_last_table = $nb_rooms % $nb_rooms_per_table;
 
-		$start_val_index = grid($nb_rooms_per_table, 0, $rooms, 0, $dateStr);
-		for ($table = 1; $table < $nb_tables; $table++)
+		if ($nb_tables > 0)
 		{
-			$start_val_index = grid($nb_rooms_per_table, 0, $rooms, $start_val_index, "");
+			$start_val_index = grid($nb_rooms_per_table, 0, $rooms, 0, $dateStr);
+			for ($table = 1; $table < $nb_tables; $table++)
+			{
+				$start_val_index = grid($nb_rooms_per_table, 0, $rooms, $start_val_index, "");
+			}
+			grid($nb_rooms_last_table, ($nb_rooms_per_table - $nb_rooms_last_table), $rooms, $start_val_index, "");
 		}
-		grid($nb_rooms_last_table, ($nb_rooms_per_table - $nb_rooms_last_table), $rooms, $start_val_index, "");
+		else
+		{
+			grid($nb_rooms_last_table, ($nb_rooms_per_table - $nb_rooms_last_table), $rooms, 0, $dateStr);
+		}
 
 		echo '</div>'
 	// the if does not end here
@@ -128,12 +142,13 @@
 	<div id="movie-session-form-div" name="movieSessionFormDiv">
 		<form method="post" action="submitForm()" name="movieSessionForm" id="movie-session-form">
 
-			<p style="font-size: 13px; font-style: italic; margin-top: 2px; padding-left: 36px;">Ajouter une séance</p>
+			<p style="font-size: 13px; font-style: italic; margin-top: 2px; padding-left: 41px;">
+				<span id="session-form-title">Ajouter une séance</span>
+				<input style="margin-left: 17px;" type="button" id="remove-button" name="removeButton" value="Supprimer" onclick="" />
+			</p>
 			<p style="margin-top: 0px;"><b>Date :</b> <span id="sessionFormDate" style="font-size: 14px;"><?php echo $dateStr ?></span></p>
 
 			<p><b>Horaire :</b>
-
-
 				<input name="beginHour" id="begin-hour" value="18" type="text" class="time-slot"> :
 				<input name="beginMin" id="begin-min" value="00" type="text" size="2" class="time-slot" /> –
 				<input name="endHour" id="end-hour" value="19" type="text" class="time-slot"> :
@@ -141,7 +156,7 @@
 			</p>
 
 			<input type="hidden" id="cinema" value="<?php echo $cinema ?>">
-			<input type="hidden" id="date" value="<?php echo $day_timestamp ?>">
+			<input type="hidden" id="date" value="<?php echo date("Y-m-d", $day_timestamp) ?>">
 
 			<label for="movieSelecter">Film :</label>
 			<select id="movie-selecter" name="movieSelecter" style="width: 200px; margin-left: 5px;">
@@ -159,7 +174,7 @@
 			<div style="text-align: center;">
 				<input type="button" name="saveButton" value="Enregistrer" onclick="sessionFormSubmit()" />
 				<input type="button" name="resetButton" value="Effacer" onclick="sessionFormReset()"/>
-				<input type="button" value="Annuler" onclick="sessionFormAbort()"/>
+				<input type="button" name="abortButton" value="Annuler" onclick="sessionFormAbort()"/><br/>
 			</div>
 		</form>
 	</div>
@@ -170,4 +185,3 @@
 
 	</body>
 </html>
-

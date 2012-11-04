@@ -122,10 +122,9 @@ tbody th, .time-atom-solid, #first-cell {
 	visibility: hidden;
 }
 
-
 #movie-session-form-div {
 	background: #f5ece0;
-	width: 300px;
+	width: 274px;
 	border: 1px solid #67798b;
 	box-shadow: 2px 2px 10px #888888;
 
@@ -149,6 +148,10 @@ tbody th, .time-atom-solid, #first-cell {
 
 #movie-session-form {
 	padding: 1px  10px 8px;
+}
+
+#remove-button {
+	visibility: hidden;
 }
 
 label {
