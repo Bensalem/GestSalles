@@ -4,7 +4,7 @@
 	<title>Choix du film</title>
 	<link rel="stylesheet" media="screen" type="text/css"
 			title="style" href="../../view/client/reservation.css" />
-	<script src="../../controller/choix_film.js"></script>
+	<script src="../../controller/client/choix_film.js"></script>
 </head>
 <body>
 	<?php include("../../view/header.php"); ?>
@@ -29,10 +29,10 @@
 				<td>
 					<input type="radio" name="id_movie" value="<?php echo $movie['id'] ?>">
 					<?php
-						echo "<a class='movieDescPopupLink' onclick='openpop('" .
-							$movie['titre'] . "'," . $movie['duree'] . "," .
-							$movie['sortie'] . ", '" . $movie['description'] .
-							"');\'>" . $movie['titre'] . "</a>"
+						echo "<a class='movieDescPopupLink' onclick='openpop(\"" .
+							$movie['titre'] . "\"," . $movie['duree'] . ",\"" .
+							$movie['sortie'] . "\", \"" . $movie['description'] .
+							"\");'>" . $movie['titre'] . "</a>";
 					?>
 				</td>
 				<td><?php echo $movie['duree'] ?> mins</td>

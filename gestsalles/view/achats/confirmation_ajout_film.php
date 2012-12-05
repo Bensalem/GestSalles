@@ -1,0 +1,1 @@
+<!DOCTYPE html><html><head><title>GestSalles :  Film</title>	<link rel="stylesheet" media="screen" type="text/css"			title="style" href="../../view/client/reservation.css" />	<script src="../../controller/achats/achats.js"></script></head><body>	<div id="corps" >		<p>Le film a bien été ajouté !</p>	</div></body></html>
