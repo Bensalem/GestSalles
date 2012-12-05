@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 3.5.2.2
+-- version 3.5.1
 -- http://www.phpmyadmin.net
 --
--- Client: 127.0.0.1
--- Généré le: Mer 10 Octobre 2012 à 23:15
--- Version du serveur: 5.5.27-log
--- Version de PHP: 5.4.6
+-- Client: localhost
+-- Généré le: Mer 05 Décembre 2012 à 03:14
+-- Version du serveur: 5.5.24-log
+-- Version de PHP: 5.4.3
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -23,110 +23,103 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Structure de la table `acteurs`
+-- Structure de la table `adresses`
 --
 
-CREATE TABLE IF NOT EXISTS `acteurs` (
-  `id_acteur` varchar(255) NOT NULL,
-  `nom` varchar(255) NOT NULL,
-  `prenom` varchar(255) NOT NULL,
-  PRIMARY KEY (`id_acteur`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS `adresses` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `num_et_rue` varchar(127) NOT NULL,
+  `ville` varchar(127) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=6 ;
 
 --
--- Contenu de la table `acteurs`
+-- Contenu de la table `adresses`
 --
 
-INSERT INTO `acteurs` (`id_acteur`, `nom`, `prenom`) VALUES
-('act01', 'Andre', ' Dussollier'),
-('act02', 'Bernard ', 'Giraudeau'),
-('act03', 'Christophe', ' Lambert'),
-('act04', 'Didier', 'Bourdon'),
-('act05', 'Francois', 'Xavier Demaison'),
-('act06', 'Jacques', 'Weber'),
-('act07', 'Gerard', 'Depardieu'),
-('act08', 'Jocelyn', 'Quivrin'),
-('act09', 'Martin', 'Lamotte'),
-('act10', 'Pierre', 'Mondy');
+INSERT INTO `adresses` (`id`, `num_et_rue`, `ville`) VALUES
+(1, '27 rue Carmin', 'Besançon'),
+(2, '18 avenue de l''Orme', 'Pau'),
+(3, '35 allée des Peupliers', 'Paris'),
+(4, '09 rue Philistine', 'Bordeaux'),
+(5, '01 rue de la Tunisie', 'Bordeaux');
 
 -- --------------------------------------------------------
 
 --
--- Structure de la table `adresse`
+-- Structure de la table `caisses`
 --
 
-CREATE TABLE IF NOT EXISTS `adresse` (
-  `id_adr` varchar(255) NOT NULL,
-  `rue` varchar(255) NOT NULL,
-  `ville` varchar(255) NOT NULL,
-  PRIMARY KEY (`id_adr`),
-  KEY `id_adr` (`id_adr`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS `caisses` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `contenu` int(11) NOT NULL,
+  `id_cinema` int(11) NOT NULL,
+  `id_caissier` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=11 ;
 
 --
--- Contenu de la table `adresse`
+-- Contenu de la table `caisses`
 --
 
-INSERT INTO `adresse` (`id_adr`, `rue`, `ville`) VALUES
-('adr01', '17, rue michel', 'Paris'),
-('adr02', '18, rue saint michel', 'Paris'),
-('adr03', '09,rue tunisie', 'Bordeaux'),
-('adr04', '01, rue palastine', 'Bordeaux'),
-('adr05', '17, rue liberté', 'Paris');
+INSERT INTO `caisses` (`id`, `contenu`, `id_cinema`, `id_caissier`) VALUES
+(1, 35, 1, 3),
+(2, 0, 1, 4),
+(3, 0, 2, 5),
+(4, 0, 3, 6),
+(5, 0, 3, 7),
+(6, 0, 4, 8),
+(7, 0, 4, 9),
+(8, 0, 5, 10),
+(9, 0, 5, 11),
+(10, 0, 5, 12);
 
 -- --------------------------------------------------------
 
 --
--- Structure de la table `caisse`
+-- Structure de la table `cinemas`
 --
 
-CREATE TABLE IF NOT EXISTS `caisse` (
-  `id_caisse` varchar(255) NOT NULL,
-  `etat` varchar(255) NOT NULL,
-  PRIMARY KEY (`id_caisse`),
-  KEY `id_caisse` (`id_caisse`),
-  KEY `id_caisse_2` (`id_caisse`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS `cinemas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nom_cinema` varchar(25) NOT NULL,
+  `nb_salles` int(11) NOT NULL,
+  `id_adresse` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=6 ;
 
 --
--- Contenu de la table `caisse`
+-- Contenu de la table `cinemas`
 --
 
-INSERT INTO `caisse` (`id_caisse`, `etat`) VALUES
-('cai01', '123'),
-('cai02', '345'),
-('cai03', '723'),
-('cai04', '673'),
-('cai05', '932'),
-('cai06', '324'),
-('cai07', '939'),
-('cai08', '342'),
-('cai09', '432'),
-('cai10', '848');
+INSERT INTO `cinemas` (`id`, `nom_cinema`, `nb_salles`, `id_adresse`) VALUES
+(1, 'Le Rex', 5, 1),
+(2, 'Les Variétés', 10, 2),
+(3, 'La Libellule', 7, 3),
+(4, 'Le Cube', 6, 4),
+(5, 'Ciné+', 6, 5);
 
 -- --------------------------------------------------------
 
 --
--- Structure de la table `cinema`
+-- Structure de la table `commentaires`
 --
 
-CREATE TABLE IF NOT EXISTS `cinema` (
-  `id_cinema` varchar(255) NOT NULL,
-  `nom` varchar(255) NOT NULL,
-  `nb_salles` int(255) NOT NULL,
-  PRIMARY KEY (`id_cinema`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS `commentaires` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `pseudo` varchar(32) NOT NULL,
+  `email` varchar(48) NOT NULL,
+  `comment` varchar(255) NOT NULL,
+  `id_film` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
 
 --
--- Contenu de la table `cinema`
+-- Contenu de la table `commentaires`
 --
 
-INSERT INTO `cinema` (`id_cinema`, `nom`, `nb_salles`) VALUES
-('cin01', 'cinema1', 10),
-('cin02', 'cinema2', 8),
-('cin03', 'cinema3', 13),
-('cin04', 'cinema4', 8),
-('cin05', 'cinema5', 4);
+INSERT INTO `commentaires` (`id`, `pseudo`, `email`, `comment`, `id_film`) VALUES
+(1, 'Jean_520', 'jean520@blue.fr', 'Un commentaire !', 1);
 
 -- --------------------------------------------------------
 
@@ -135,39 +128,28 @@ INSERT INTO `cinema` (`id_cinema`, `nom`, `nb_salles`) VALUES
 --
 
 CREATE TABLE IF NOT EXISTS `films` (
-  `id_film` varchar(255) NOT NULL,
-  `titre` varchar(255) NOT NULL,
-  `duree` int(255) NOT NULL,
-  `Catégorie` varchar(255) NOT NULL,
-  `Description` text NOT NULL,
-  `Edition` varchar(255) NOT NULL,
-  PRIMARY KEY (`id_film`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `titre` varchar(100) NOT NULL,
+  `genre` varchar(24) NOT NULL,
+  `duree` int(11) NOT NULL,
+  `sortie` date NOT NULL,
+  `acteurs` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `nb_copies_en_reserve` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=9 ;
 
 --
 -- Contenu de la table `films`
 --
 
-INSERT INTO `films` (`id_film`, `titre`, `duree`, `Catégorie`, `Description`, `Edition`) VALUES
-('film01', 'Devil Inside', 2, 'Horreur, Thriller', 'Le film «Sia le rêve du python» est une adaptation cinématographique de la légende du Wagadu (mythe Soninké du 7e siècle). Inspiré de la pièce de théâtre «La légende du Wagadu vue par Sia Yatabéré» de l´auteur mauritanien Moussa Diagana, le film est une approche politique universelle et contemporaine du mythe, une réflexion sur l''utilisation du mystère par le pouvoir.', '2012'),
-('film02', 'Contraband', 3, 'Drame, Thriller', 'est un film de science-fiction de James Cameron tourné en 3D Relief, sorti en France le 16 décembre 2009. L''action se déroule sur la lune d''une géante gazeuse, Pandora, recouverte d''une jungle luxuriante', '2011'),
-('film03', 'Dos au mur', 2, 'Crime, Thriller', 'Un programme est créé par les terriens, le programme Avatar qui va leur permettre de contrôler des corps Na''vi clonés associés à des gènes humains, afin de s''insérer dans la population et de tenter de négocier avec elle, dans la mesure où le clan', '2012'),
-('film04', 'The Divide', 3, 'Science-Fiction, Thriller, Action', 'Il a été tourné entre le mois d''août et le mois de septembre 1999 au Burkina Faso, dans la région de Ouagadougou (Kokologho) pour les extérieurs du Palais et pour le reste à Bobo-Dioulasso notamment dans le vieux quartier de Dioulassoba et dans les environs de cette ville.', '2012'),
-('film05', '13 Flowers of Nanjing', 2, 'action', 'Description du film DILA. Introduction - La DILA; La diffusion de la norme juridique française; La garantie de la transparence économique et financière', '2011');
-
--- --------------------------------------------------------
-
---
--- Structure de la table `participation`
---
-
-CREATE TABLE IF NOT EXISTS `participation` (
-  `id_film` varchar(255) NOT NULL,
-  `id_acteur` varchar(255) NOT NULL,
-  PRIMARY KEY (`id_film`,`id_acteur`),
-  KEY `id_film` (`id_film`,`id_acteur`),
-  KEY `id_acteur` (`id_acteur`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+INSERT INTO `films` (`id`, `titre`, `genre`, `duree`, `sortie`, `acteurs`, `description`, `nb_copies_en_reserve`) VALUES
+(1, 'Film Sans Titre 1', 'Action', 90, '2012-11-29', 'L''acteur 1, l''acteur 2', 'Un film comme les autres.', 5),
+(2, 'Un Film (V 1987)', 'Science Fiction', 105, '1987-05-02', 'L''acteur 1, l''acteur 2, l''acteur 3', 'Film muet en noir et blanc des années 1980.', 1),
+(3, 'Film Au Long Titre n°1000000', 'Documentaire', 30, '2002-07-15', '', 'Discussion autour des macaroni.', 5),
+(4, 'Film Au Long Titre n°9999999999999999999999999999999999999999999', 'Science Fiction', 120, '2012-11-15', 'L''acteur 1, l''acteur 2, l''acteur 3', 'Un film comme les autres.', 3),
+(5, 'Film Sans Titre 2', 'Documentaire', 60, '2012-12-02', 'L''acteur 1, l''acteur 2', 'Un film comme les autres.', 4),
+(6, 'Le Film n°1', 'Action', 105, '2012-04-15', 'L''acteur 1, l''acteur 2', 'Un film comme les autres.', 2);
 
 -- --------------------------------------------------------
 
@@ -176,27 +158,39 @@ CREATE TABLE IF NOT EXISTS `participation` (
 --
 
 CREATE TABLE IF NOT EXISTS `personnel` (
-  `id_personnel` varchar(255) NOT NULL,
-  `nom` varchar(255) NOT NULL,
-  `prenom` varchar(255) NOT NULL,
-  `Login` varchar(255) NOT NULL,
-  `Password` varchar(255) NOT NULL,
-  `Fonction` varchar(255) NOT NULL,
-  PRIMARY KEY (`id_personnel`,`Fonction`),
-  KEY `id_personnel` (`id_personnel`,`Fonction`),
-  KEY `Fonction` (`Fonction`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nom` varchar(47) NOT NULL,
+  `prenom` varchar(47) NOT NULL,
+  `fonction` varchar(23) NOT NULL,
+  `login` varchar(23) NOT NULL,
+  `password` varchar(23) NOT NULL,
+  `id_cinema` int(11) DEFAULT NULL,
+  `id_caisse` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=18 ;
 
 --
 -- Contenu de la table `personnel`
 --
 
-INSERT INTO `personnel` (`id_personnel`, `nom`, `prenom`, `Login`, `Password`, `Fonction`) VALUES
-('per01', 'Al Pacino', 'pino', 'perso01', 'perso01', 'acheteur'),
-('per02', 'Schwarzenegger', 'lonu', 'perso02', 'perso02', 'programmateur'),
-('per03', 'saaas', 'kszdz', 'perso03', 'perso03', 'gerant'),
-('per04', 'bruno', 'malle', 'perso04', 'perso04', 'caissier'),
-('per05', 'Bruce', 'lee', 'perso05', 'perso05', 'caissier');
+INSERT INTO `personnel` (`id`, `nom`, `prenom`, `fonction`, `login`, `password`, `id_cinema`, `id_caisse`) VALUES
+(1, 'Bernan', 'Alice', 'acheteur', 'Alice', 'mdp', NULL, NULL),
+(2, 'Mills', 'Dan', 'programmateur', 'Dan', 'mdp', NULL, NULL),
+(3, 'Dupont', 'Jean', 'caissier', 'Jean', 'mdp', 1, 1),
+(4, 'Fictive', 'Carole', 'caissier', 'Carole', 'mdp', 1, 2),
+(5, 'Inizan', 'Lohann', 'caissier', 'Lohann', 'mdp', 2, 3),
+(6, 'Guyader', 'Loïck', 'caissier', 'Loïck', 'mdp', 3, 4),
+(7, 'Merer', 'Dinan', 'caissier', 'Dinan', 'mdp', 3, 5),
+(8, 'Jezequel', 'Egat', 'caissier', 'Egat', 'mdp', 4, 6),
+(9, 'Derrien', 'Auregane', 'caissier', 'Auregane', 'mdp', 4, 7),
+(10, 'Denyel', 'Marivon', 'caissier', 'Marivon', 'mdp', 5, 8),
+(11, 'Auffret', 'Klara', 'caissier', 'Klara', 'mdp', 5, 9),
+(12, 'Abautret', 'Maï', 'caissier', 'Maï', 'mdp', 5, 10),
+(13, 'Helies', 'Lera', 'gerant', 'Lera', 'mdp', 1, NULL),
+(14, 'Menez', 'Kaourintin', 'gerant', 'Kaourintin', 'mdp', 2, NULL),
+(15, 'Le Mével', 'Loïk', 'gerant', 'Loïk', 'mdp', 3, NULL),
+(16, 'Denoel', 'Jos', 'gerant', 'Loïk', 'mdp', 4, NULL),
+(17, 'Prigent', 'Luan', 'gerant', 'Luan', 'mdp', 5, NULL);
 
 -- --------------------------------------------------------
 
@@ -205,60 +199,86 @@ INSERT INTO `personnel` (`id_personnel`, `nom`, `prenom`, `Login`, `Password`, `
 --
 
 CREATE TABLE IF NOT EXISTS `projections` (
-  `id_proj` varchar(255) NOT NULL,
-  `horaire` varchar(255) NOT NULL,
-  `durée_proj` int(255) NOT NULL,
-  `Date` date NOT NULL,
-  `Prix` int(255) NOT NULL,
-  PRIMARY KEY (`id_proj`),
-  KEY `id_proj` (`id_proj`),
-  KEY `id_proj_2` (`id_proj`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_film` int(255) NOT NULL,
+  `date` date NOT NULL,
+  `heure_debut` time NOT NULL,
+  `heure_fin` time NOT NULL,
+  `id_cinema` int(11) NOT NULL,
+  `id_salle` int(11) NOT NULL,
+  `tarif` int(11) NOT NULL,
+  `nb_reservations` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=13 ;
 
 --
 -- Contenu de la table `projections`
 --
 
-INSERT INTO `projections` (`id_proj`, `horaire`, `durée_proj`, `Date`, `Prix`) VALUES
-('proj01', '10:00', 2, '0000-00-00', 3),
-('proj02', '12:00', 2, '0000-00-00', 6),
-('proj03', '15:00', 3, '0000-00-00', 4),
-('proj04', '18:00', 3, '0000-00-00', 8),
-('proj05', '20:00', 2, '0000-00-00', 10);
+INSERT INTO `projections` (`id`, `id_film`, `date`, `heure_debut`, `heure_fin`, `id_cinema`, `id_salle`, `tarif`, `nb_reservations`) VALUES
+(1, 1, '2012-11-09', '08:00:00', '09:30:00', 1, 1, 10, 1),
+(2, 2, '2012-11-09', '10:00:00', '11:45:00', 1, 1, 10, 0),
+(3, 3, '2012-11-10', '08:15:00', '10:00:00', 1, 1, 8, 0),
+(4, 1, '2012-11-09', '09:00:00', '10:45:00', 1, 2, 7, 0),
+(5, 5, '2012-11-09', '10:45:00', '11:50:00', 2, 1, 10, 0),
+(6, 3, '2012-11-10', '11:30:00', '12:00:00', 3, 2, 10, 0),
+(7, 0, '2012-11-10', '10:00:00', '12:00:00', 4, 1, 8, 0),
+(8, 6, '2012-12-04', '12:00:00', '13:00:00', 1, 4, 10, 0),
+(9, 2, '2012-12-04', '12:30:00', '13:00:00', 1, 5, 8, 2);
 
 -- --------------------------------------------------------
 
 --
--- Structure de la table `salle`
+-- Structure de la table `reservations`
 --
 
-CREATE TABLE IF NOT EXISTS `salle` (
-  `id_salle` varchar(255) NOT NULL,
-  `numero` int(255) NOT NULL,
-  `capacite` int(255) NOT NULL,
-  PRIMARY KEY (`id_salle`),
-  KEY `id_salle` (`id_salle`),
-  KEY `id_salle_2` (`id_salle`),
-  KEY `numero` (`numero`),
-  KEY `id_salle_3` (`id_salle`),
-  KEY `id_salle_4` (`id_salle`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS `reservations` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nom` varchar(63) NOT NULL,
+  `prenom` varchar(63) NOT NULL,
+  `email` varchar(63) NOT NULL,
+  `id_session` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
 
 --
--- Contenu de la table `salle`
+-- Contenu de la table `reservations`
 --
 
-INSERT INTO `salle` (`id_salle`, `numero`, `capacite`) VALUES
-('sal01', 19, 280),
-('sal02', 23, 344),
-('sal03', 2, 212),
-('sal04', 1, 190),
-('sal05', 5, 200),
-('sal06', 6, 400),
-('sal07', 3, 322),
-('sal08', 4, 323),
-('sal09', 2, 210),
-('sal10', 1, 200);
+INSERT INTO `reservations` (`id`, `nom`, `prenom`, `email`, `id_session`) VALUES
+(1, 'Dupont', 'Alex', 'miam@caramail.fr', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `salles`
+--
+
+CREATE TABLE IF NOT EXISTS `salles` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `num_salle` int(11) NOT NULL,
+  `nom_salle` varchar(15) NOT NULL,
+  `id_cinema` int(11) NOT NULL,
+  `nb_places` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=12 ;
+
+--
+-- Contenu de la table `salles`
+--
+
+INSERT INTO `salles` (`id`, `num_salle`, `nom_salle`, `id_cinema`, `nb_places`) VALUES
+(1, 1, '01', 1, 200),
+(2, 2, '02', 1, 150),
+(3, 3, '03', 1, 170),
+(4, 4, '04', 1, 120),
+(5, 5, '05', 1, 100),
+(6, 6, '06', 1, 120),
+(7, 7, '07', 1, 100),
+(8, 8, '08', 1, 100),
+(9, 9, '09', 1, 100),
+(10, 10, '10', 1, 100),
+(11, 1, '01', 2, 100);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

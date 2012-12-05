@@ -44,9 +44,9 @@
 
 	$req = $db->prepare('INSERT INTO projections (id_film, date, heure_debut,
 		heure_fin, id_cinema, id_salle, tarif, nb_reservations)
-		VALUES ((SELECT id FROM films WHERE titre = :film, :date), :debut, :fin,
-		(SELECT id FROM cinemas WHERE nom_cinema = :cinema),
-		(SELECT id FROM salles INNER JOIN cinemas
+		VALUES ((SELECT films.id FROM films WHERE titre = :film), :date, :debut,
+		:fin, (SELECT cinemas.id FROM cinemas WHERE nom_cinema = :cinema),
+		(SELECT salles.id FROM salles INNER JOIN cinemas
 		ON salles.id_cinema = cinemas.id
 		WHERE nom_salle = :salle AND nom_cinema = :cinema), 8, 0)');
 
@@ -57,5 +57,6 @@
 	$req->bindValue(':fin', $endTime, PDO::PARAM_STR);
 	$req->bindValue(':film', $movie, PDO::PARAM_STR);
 	$req->execute();
+
 	echo SUCCESS;
 ?>

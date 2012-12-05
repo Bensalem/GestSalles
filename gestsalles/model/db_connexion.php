@@ -2,7 +2,7 @@
 	$dbhost = "localhost";
 	$dbuser = "root";
 	$dbpass = "1g57bh32";
-	$dbname = "testdb";
+	$dbname = "gestsalles";
 
 	try
 	{
